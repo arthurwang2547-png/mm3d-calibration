@@ -1,0 +1,5 @@
+function navigateSmallV8(direction){if(!started)return loadCue(lesson,cueIndex,true);if(direction<0){if(cueIndex>0)return loadCue(lesson,cueIndex-1,true);let n=lesson===13&&optics==='post'?11:lesson-1;if(n>=11)return loadCue(n,cueIds(n).length-1,true);stop();parent.postMessage({type:'mm3d-navigate',step:10,edge:'last'},'*');return;}if(cueIndex+1<cueIds().length)return loadCue(lesson,cueIndex+1,true);if(lesson<15)return loadCue(nextStep(),0,true);complete();}
+$('#prev').onclick=()=>navigateSmallV8(-1);$('#next').onclick=()=>navigateSmallV8(1);$('#replay').onclick=()=>loadCue(lesson,cueIndex,true);
+const navRenderV8=render;render=s=>{navRenderV8(s);$('#prev').disabled=false;};
+addEventListener('message',e=>{if(e.data?.type!=='mm3d-command'||e.data.action!=='navigate')return;const n=Math.max(11,Math.min(15,e.data.step));loadCue(n,e.data.edge==='last'?cueIds(n).length-1:0,true)});
+const navLoadV8=loadCue;loadCue=async(...args)=>{const out=await navLoadV8(...args);$('#prev').disabled=false;return out;};window.MM3D.loadCue=loadCue;
