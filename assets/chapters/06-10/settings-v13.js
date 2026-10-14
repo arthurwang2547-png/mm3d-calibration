@@ -1,0 +1,2 @@
+// Keep settings in the shared shell; do not reset cue or optical branch.
+addEventListener('message',e=>{if(e.source!==parent||e.data?.type!=='mm3d-settings')return;const player=typeof narration!=='undefined'?narration:typeof audio!=='undefined'?audio:null;if(player){if(Number.isFinite(e.data.voiceVolume))player.volume=Math.max(0,Math.min(1,e.data.voiceVolume));if(typeof e.data.voiceMuted==='boolean'){player.muted=e.data.voiceMuted;if(typeof voiceMuted!=='undefined')voiceMuted=e.data.voiceMuted;}}if(e.data.toggleLayout)document.querySelector('#layout')?.click();});
