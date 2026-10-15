@@ -1,0 +1,176 @@
+/*
+ * MM3D PLUS 手機版 V2 外殼。
+ * 視覺與尺寸沿用 Codex 的 mobile-8-3-v2.html（同一套版面、字體、配色、局部放大與播放控制），
+ * 只做三件這一頁需要的追加：
+ *   1. 顯示「上一段」按鈕（V2 原本把它藏起來）
+ *   2. 處理電腦版的「原理大畫面」與「只看操作」兩種單欄模式
+ *   3. 局部放大框位置改由 JS 依焦點自動選邊（避免遮住正在說明的欄位）
+ */
+html{height:100%;overflow:hidden;background:#eaf0f5}
+body#mobile-v2{
+  height:var(--app-height,100dvh)!important;width:100%!important;min-width:0!important;min-height:0!important;margin:0!important;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)!important;
+  display:grid!important;grid-template-rows:44px minmax(0,1fr) auto!important;overflow:hidden!important;box-sizing:border-box!important;
+  background:#eef3f7!important;color:#203e55;font-family:-apple-system,BlinkMacSystemFont,'PingFang TC',sans-serif}
+
+#mobile-v2 .topbar,#mobile-v2 #steps{display:none!important}
+#mobile-v2 button{font-family:inherit;touch-action:manipulation}
+
+/* ── 頂部單行標題 ─────────────────────────────────────────── */
+#mobile-v2 .v2-header{display:flex;align-items:center;gap:8px;padding:0 10px;background:#183e59;color:white;min-width:0}
+#mobile-v2 .v2-header h1{font-size:12px!important;font-weight:650;letter-spacing:0!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2;margin:0!important;flex:1;min-width:0}
+#mobile-v2 .v2-header button{width:40px;height:40px;flex:none;border:0;background:transparent;color:#fff;font-size:20px;padding:0}
+
+/* ── 舞台：直向上下、橫向左右 ─────────────────────────────── */
+#mobile-v2 #stage,#mobile-v2 #stage.full{
+  width:100%!important;height:auto!important;min-height:0!important;display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;grid-template-rows:minmax(0,1.08fr) minmax(0,1fr)!important;
+  gap:6px!important;padding:6px 8px!important;margin:0!important;overflow:hidden!important}
+#mobile-v2 #operation,#mobile-v2 #principle{
+  position:relative!important;display:block!important;width:auto!important;height:auto!important;min-width:0!important;min-height:0!important;
+  margin:0!important;border:1px solid #ccdae5!important;border-radius:10px!important;background:#f8fbfd!important;overflow:hidden!important;box-shadow:none!important}
+#mobile-v2 .panelhead{
+  position:absolute;top:0;left:0;right:0;z-index:3;display:flex!important;justify-content:space-between!important;align-items:center;
+  height:22px!important;padding:0 9px!important;background:#ffffffed;border-bottom:1px solid #e4ecf2;font-size:10px!important;
+  color:#7c95a5;letter-spacing:.4px;pointer-events:none}
+#mobile-v2 .panelhead span:first-child{color:#385d74}
+#mobile-v2 #operation .panelhead span:last-child{display:none!important}
+#mobile-v2 .panelhead i{display:inline-block;width:6px;height:6px;background:#0db8a3;border-radius:50%;margin-right:6px}
+#mobile-v2 .panel-zoom{position:absolute;top:0;right:2px;width:38px;height:24px;z-index:8;border:0;background:transparent;color:#52758d;font-size:15px;padding:0}
+#mobile-v2 .shotwrap{
+  position:absolute!important;inset:22px 0 0!important;padding:0!important;display:block!important;overflow:hidden!important}
+/* 01-05 章的操作面板沒有 #screen-frame，直接讓 #shot 填滿 .shotwrap，
+   由 SVG 自己的 preserveAspectRatio 維持原圖比例（letterbox），不拉伸不變形 */
+#mobile-v2 #shot{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;display:block!important}
+#mobile-v2 #screen-frame{position:relative!important;flex:none!important;border-radius:0!important;box-shadow:none!important;background:#f0f1f2!important;overflow:hidden!important}
+
+/* 只保留操作畫面與 3D 畫面，其餘電腦版浮動卡片全部收起 */
+#mobile-v2 .op-instruction,#mobile-v2 #heading,#mobile-v2 #scene-note,#mobile-v2 #explanation,#mobile-v2 #field-card,
+#mobile-v2 #layer-card,#mobile-v2 #focus-sync,#mobile-v2 #gesture-hint,#mobile-v2 .model-footer,#mobile-v2 .model-label,
+#mobile-v2 #focus-sync-v3,#mobile-v2 #marking-v3,#mobile-v2 .k-panel-v3{display:none!important}
+
+/* 焦點框改用科技藍細框（原圖的紅框只留在影片片段） */
+#mobile-v2 #hot{stroke:#1674d6!important;stroke-width:3!important;fill:#1674d608!important;animation:none!important}
+#mobile-v2 #tip{display:none!important}
+
+#mobile-v2 #modelViewport{position:absolute!important;inset:22px 0 28px!important;transition:none!important;overflow:hidden}
+#mobile-v2 #scene{display:block!important;width:100%!important;height:100%!important;touch-action:none}
+#mobile-v2 #annotations{pointer-events:none}
+
+/* 材料試刻子畫面（沿用原 canvas；只有這一章自己判定要顯示時才出現，
+   否則會蓋掉 3D 上的「焦距高度」標註）*/
+#mobile-v2 #material-v4{
+  position:absolute!important;right:7px!important;bottom:36px!important;left:auto!important;top:auto!important;
+  width:clamp(108px,32vw,140px)!important;height:auto!important;z-index:5!important;margin:0!important;padding:4px!important;
+  background:#152732!important;border:1px solid #43657b!important;border-radius:8px!important;box-shadow:none!important;
+  pointer-events:none;display:none!important}
+#mobile-v2 #material-v4.show{display:block!important}
+#mobile-v2 #material-v4 canvas{display:block!important;width:100%!important;height:auto!important;border-radius:4px}
+#mobile-v2 #material-v4 small{display:block!important;font-size:8px!important;line-height:12px!important;margin:2px 0 0!important;color:#d5e6ef!important;text-align:center}
+#mobile-v2 #material-focus-v4{
+  position:absolute!important;right:7px!important;bottom:36px!important;left:auto!important;top:auto!important;
+  width:clamp(108px,32vw,140px)!important;height:auto!important;z-index:5!important;margin:0!important;padding:4px!important;
+  background:#152732!important;border:1px solid #43657b!important;border-radius:8px!important;box-shadow:none!important;pointer-events:none}
+#mobile-v2 #material-focus-v4 canvas{display:block!important;width:100%!important;height:auto!important;border-radius:4px}
+#mobile-v2 #material-focus-v4 small{display:block!important;font-size:8px!important;line-height:12px!important;margin:2px 0 0!important;color:#d5e6ef!important;text-align:center}
+
+/* 流程示意圖的說明卡：電腦版是右側浮動大卡，手機改成左下角精簡卡，
+   只佔材料子畫面左邊那塊，不蓋住 3D 主體 */
+#mobile-v2 #flow-readout{
+  left:7px!important;right:auto!important;top:auto!important;bottom:34px!important;
+  max-width:calc(100% - 152px)!important;padding:7px 9px!important;border-radius:9px!important;box-shadow:none!important}
+#mobile-v2 #flow-readout small{font-size:9px!important;line-height:13px!important}
+#mobile-v2 #flow-readout strong{font-size:15px!important;line-height:1.35!important;margin:1px 0 0!important}
+#mobile-v2 #flow-readout p{font-size:10px!important;line-height:1.5!important;margin:3px 0 0!important}
+
+/* 3D 面板底部讀值條（電腦版這裡是浮動卡片，手機改成一行） */
+#mobile-v2 .v2-height{
+  position:absolute;left:0;right:0;bottom:0;height:28px;display:flex;align-items:center;gap:8px;padding:0 10px;
+  border-top:1px solid #e0e9f0;background:#f9fcfe;font-size:12px;font-weight:650;color:#196f84;z-index:6;pointer-events:none}
+#mobile-v2 .v2-height b{font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+#mobile-v2 .v2-height small{font-weight:400;font-size:9px;margin-left:auto;color:#738b9b;white-space:nowrap}
+
+/* ── 局部放大框（取自原畫面同一張圖，用 viewBox 裁切）───────── */
+#mobile-v2 .v2-lens{
+  position:absolute;background:#fff;border:1.5px solid #1674d6;border-radius:7px;overflow:hidden;z-index:7;pointer-events:none;
+  box-shadow:0 2px 5px #26445e14}
+#mobile-v2 .v2-lens[hidden]{display:none!important}
+#mobile-v2 .v2-lens-label{background:#eef6fe;border-bottom:1px solid #c8ddf1;padding:3px 6px;color:#1c609c;font-size:10px;line-height:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#mobile-v2 .v2-lens svg{position:static!important;display:block;width:100%!important;max-height:none!important;object-fit:contain}
+/* 影片片段的放大框：用第二個 video 做位移＋縮放裁切 */
+#mobile-v2 .v2-lens .v2-video-crop{position:relative;overflow:hidden;background:#0d1418}
+#mobile-v2 .v2-lens .v2-video-crop video{position:absolute;left:0;top:0;max-width:none!important;max-height:none!important;display:block}
+#mobile-v2 .v2-connector{position:absolute;inset:0;width:100%;height:100%;z-index:6;pointer-events:none;overflow:visible}
+#mobile-v2 .v2-connector path{fill:none;stroke:#1674d6;stroke-width:1.5;vector-effect:non-scaling-stroke}
+
+/* ── 底部字幕與播放控制 ───────────────────────────────────── */
+#mobile-v2 .course-footer{
+  position:relative!important;display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:4px!important;
+  height:auto!important;min-height:0!important;flex:none!important;padding:6px 10px 8px!important;
+  border-top:1px solid #d3e0e9!important;background:#fff!important;overflow:visible!important;width:100%!important;inset:auto!important}
+#mobile-v2 .course-footer .narration{display:flex!important;flex-direction:column!important;gap:4px!important;width:100%!important;min-width:0!important;margin:0!important}
+#mobile-v2 .course-footer .narration-state{display:none!important}
+#mobile-v2 .course-footer #subtitle{
+  height:auto!important;min-height:40px!important;max-height:none!important;font-size:14px!important;line-height:20px!important;
+  margin:0!important;padding:0!important;overflow:hidden!important;white-space:normal!important;letter-spacing:0!important;
+  color:#223f54!important;text-align:left!important}
+#mobile-v2 .course-footer .scrub{display:flex!important;align-items:center!important;gap:9px!important;height:18px!important;margin:0!important;padding:0!important}
+#mobile-v2 .course-footer #seek{height:18px!important;flex:1!important;min-width:0!important;width:auto!important;margin:0!important;accent-color:#235c8a!important}
+#mobile-v2 .course-footer #time-display{font-size:10px!important;min-width:74px!important;line-height:16px!important;color:#617d92!important}
+#mobile-v2 .course-footer .controls{display:flex!important;gap:7px!important;width:100%!important;flex:none!important}
+#mobile-v2 .course-footer .controls button{
+  display:block!important;flex:1 1 0!important;height:44px!important;min-width:0!important;padding:0 6px!important;
+  border:1px solid #ccdce8!important;border-radius:8px!important;background:white!important;font-size:13px!important;
+  font-weight:550!important;color:#234f70!important;text-align:center!important}
+#mobile-v2 .course-footer .controls #pause{background:#1a4868!important;color:white!important;border-color:#1a4868!important}
+#mobile-v2 .course-footer .controls button:disabled{opacity:.55}
+
+/* ── 放大模式、起始頁、設定 ───────────────────────────────── */
+#mobile-v2 .v2-start{position:absolute;inset:0;display:grid;place-items:center;z-index:60;background:#eef4f9ed;backdrop-filter:blur(5px);text-align:center;padding:28px}
+#mobile-v2 .v2-start>div{max-width:300px}
+#mobile-v2 .v2-start h2{font-size:23px;color:#23445e;margin:0 0 12px;line-height:1.35}
+#mobile-v2 .v2-start p{font-size:14px;color:#637f94;line-height:1.7;margin:0 0 18px}
+#mobile-v2 .v2-start button{height:48px;min-width:160px;border:0;border-radius:9px;background:#1b4c70;color:white;font-size:15px}
+#mobile-v2 .v2-settings{position:absolute;right:8px;top:calc(46px + env(safe-area-inset-top));z-index:80;background:#fff;border:1px solid #c4d7e6;border-radius:10px;padding:16px;max-width:calc(100% - 16px);box-shadow:0 8px 30px #19354d26;font-size:13px}
+#mobile-v2 .v2-settings[hidden]{display:none!important}
+#mobile-v2 .v2-settings label{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+#mobile-v2 .v2-settings p{font-size:12px;line-height:1.7;color:#638098;max-width:260px;margin:8px 0 0}
+#mobile-v2 .v2-expanded{position:fixed!important;inset:calc(44px + env(safe-area-inset-top)) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)!important;z-index:50!important;border-radius:0!important}
+#mobile-v2 .v2-expanded .panel-zoom{width:44px;height:28px}
+#mobile-v2 .v2-expanded .panelhead{height:28px!important}
+#mobile-v2 #operation.v2-expanded .shotwrap{top:28px!important}
+#mobile-v2 #principle.v2-expanded #modelViewport{top:28px!important}
+
+/* ── 這一頁的追加：上一段、單欄模式 ──────────────────────── */
+#mobile-v2 .course-footer .controls #prev{display:block!important}
+
+/* 電腦版的「原理大畫面」：只留 3D 面板 */
+#mobile-v2 #stage.full{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr)!important}
+#mobile-v2 #stage.full #operation{display:none!important}
+/* 直向的大畫面：3D 面板若拉滿整個高度，畫面比例會變成 0.57，原模型的取景會把
+   右側的「244 mm · 焦距高度」標註裁掉。這裡把面板高度定在約 1.5:1（接近電腦版
+   大畫面的比例）並置中，模型的視角、比例與標註都完整保留。 */
+@media(orientation:portrait){
+  #mobile-v2 #stage.full{grid-template-rows:minmax(0,1fr)!important;align-content:center!important}
+  #mobile-v2 #stage.full #principle{
+    align-self:center!important;
+    height:calc((100vw - 16px) / 1.5 + 52px)!important;
+    max-height:calc(100% - 8px)!important}
+}
+/* 電腦版的「只看操作畫面」 */
+#mobile-v2 #stage.operation-only-v5{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr)!important}
+#mobile-v2 #stage.operation-only-v5 #principle{display:none!important}
+
+/* ── 橫向：左右雙畫面 ─────────────────────────────────────── */
+@media(orientation:landscape){
+  body#mobile-v2{grid-template-rows:38px minmax(0,1fr) auto!important}
+  #mobile-v2 #stage,#mobile-v2 #stage.full,#mobile-v2 #stage.operation-only-v5{
+    grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr)!important;padding:4px 8px!important;gap:6px!important}
+  #mobile-v2 #stage.full{grid-template-columns:minmax(0,1fr)!important}
+  #mobile-v2 #stage.operation-only-v5{grid-template-columns:minmax(0,1fr)!important}
+  #mobile-v2 .v2-header h1{font-size:13px!important}
+  #mobile-v2 .course-footer{display:grid!important;grid-template-columns:minmax(0,1fr) 260px!important;align-items:center!important;gap:10px!important;padding:5px 10px 6px!important}
+  #mobile-v2 .course-footer #subtitle{min-height:40px!important;max-height:none!important;font-size:13px!important;line-height:20px!important}
+  #mobile-v2 #material-v4{width:116px!important}
+  #mobile-v2 .v2-expanded{top:calc(38px + env(safe-area-inset-top))!important}
+}
