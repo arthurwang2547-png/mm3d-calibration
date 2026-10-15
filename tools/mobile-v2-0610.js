@@ -1,15 +1,18 @@
 /*
- * MM3D PLUS 手機版 V2 呈現層 — 完整版顯示的 STEP 05「進入 3D 多層校正」。
+ * MM3D PLUS 手機版 V2 呈現層 — 06-10 章（完整版顯示的 STEP 05～09）。
  *
- * 這一段屬於 06-10 章（影片播放＋多層 3D 模型），播放引擎跟 01-05 章不同，
- * 所以獨立成另一頁，避免把兩套引擎硬合併而破壞既有的動畫與語音同步。
+ * 由 V2_CONFIG 決定這一頁涵蓋哪幾步：
+ *   window.V2_CONFIG = { firstStep, lastStep, nextPage, prevPage, title, note }
+ *   mobile-05.html     → firstStep 0, lastStep 0
+ *   mobile-06-09.html  → firstStep 1, lastStep 4
  *
- * 這一層同樣只做版面、字幕分句、局部放大與播放控制：
- *   - 影片片段的放大框用章節自己在 #video-overlay 畫的標示框換算，不自行發明位置。
- *   - 3D 模型的視角與取景完全沿用原模型。
+ * 這一層只做版面、字幕分句、局部放大與播放控制；
+ * 播放引擎（影片對時、多層模型、旁白時鐘）完全沿用章節原本的 startCue / startStep。
  */
 (function () {
   const CFG = window.V2_CONFIG || {};
+  const FIRST = CFG.firstStep ?? 0;
+  const LAST = CFG.lastStep ?? 0;
   document.body.id = 'mobile-v2';
 
   const $q = (s) => document.querySelector(s);
@@ -19,6 +22,19 @@
   const principle = $q('#principle');
 
   let frameW = 0, frameH = 0;
+  window.__v2dbg = () => {
+    const b = shotwrap.getBoundingClientRect();
+    return { frameW, frameH, lastKey, lensHidden: lens.hidden, full: stage.classList.contains('full'),
+      vm: frame.classList.contains('video-mode'), bw: Math.round(b.width), bh: Math.round(b.height) };
+  };
+
+  // ── 顯示編號：06-10 章的 step 0 對應完整版 STEP 05 ────────────────────
+  const dispStep = (s) => s + 5;
+
+  // ── 扁平小段清單：跨步驟，一次走一小段 ──────────────────────────────
+  const FLAT = [];
+  for (let s = FIRST; s <= LAST; s++) for (let j = 0; j < CUES[s].length; j++) FLAT.push([s, j]);
+  const flatIndex = () => FLAT.findIndex(([s, j]) => s === step && j === cue);
 
   // ── 頂部單行標題 ────────────────────────────────────────────────────
   const header = document.createElement('header');
@@ -56,14 +72,12 @@
   function measure() {
     const b = shotwrap.getBoundingClientRect();
     if (!b.width || !b.height) return;
-    frameW = Math.max(0, Math.min(b.width, b.height * 1000 / 730));
+    frameW = Math.max(0, Math.min(b.width - 18, b.height * 1000 / 730));
     frameH = frameW * 730 / 1000;
     frame.style.width = frameW + 'px';
     frame.style.height = frameH + 'px';
   }
   window.fitScreen = measure;
-  window.fitScreen2 = measure;
-  // 章節自己有 fitScreen，這裡覆蓋成 06-10 的 1000×730 基準
   try { fitScreen = measure; } catch (_) {}
 
   function v2Resize() {
@@ -94,6 +108,90 @@
     if (![bx, by, bw, bh].every(Number.isFinite)) return null;
     return { video: vid, box: [(bx - vx) / k, (by - vy) / k, bw / k, bh / k], label: (CUES[step][cue] || {}).label };
   }) : null;
+
+  // 靜態截圖的局部放大（同一張原圖 + viewBox 裁切）
+  const lens = document.createElement('div');
+  lens.className = 'v2-lens';
+  lens.innerHTML = '<div class="v2-lens-label"></div><svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"><image/><g class="v2-lens-overlay"></g></svg>';
+  lens.hidden = true;
+  frame.append(lens);
+  const lensSvg = lens.querySelector('svg');
+  const lensImage = lens.querySelector('image');
+  const lensOverlay = lens.querySelector('.v2-lens-overlay');
+  const lensLabel = lens.querySelector('.v2-lens-label');
+  const connector = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  connector.classList.add('v2-connector');
+  connector.innerHTML = '<path/>';
+  frame.append(connector);
+  const connectorPath = connector.querySelector('path');
+  let lastKey = '', lastOverlay = '';
+
+  const VBW = 1000, VBH = 730;
+  function layoutLens() {
+    if (stage.classList.contains('full') || !frameW) { if (!lens.hidden) { lens.hidden = true; connector.style.display = 'none'; lastKey = ''; } return; }
+    const shotImage = $q('#shot-image');
+    const href = shotImage && shotImage.getAttribute('href');
+    const hot = $q('#hot');
+    if (!href || !hot || frame.classList.contains('video-mode')) { if (!lens.hidden) { lens.hidden = true; connector.style.display = 'none'; lastKey = ''; } return; }
+    if (hot.style.visibility === 'hidden') { if (!lens.hidden) { lens.hidden = true; connector.style.display = 'none'; lastKey = ''; } return; }
+    const box = ['x', 'y', 'width', 'height'].map((k) => +hot.getAttribute(k));
+    if (!box.every(Number.isFinite) || box[2] <= 0) { lens.hidden = true; return; }
+    const pad = 8;
+    const f = { href, box: [box[0] - pad, box[1] - pad, box[2] + pad * 2, box[3] + pad * 2], label: (CUES[step][cue] || {}).label || '目前操作的欄位' };
+
+    const key = [f.box.join(','), Math.round(frameW), Math.round(frameH)].join('|');
+    if (key === lastKey && !lens.hidden) return;
+    lastKey = key;
+
+    const lensW = Math.max(132, Math.round(Math.min(frameW * 0.56, 250)));
+    const lensH = Math.max(58, Math.round(Math.min(frameH * 0.34, 104)));
+    const srcAspect = lensW / lensH;
+    let cw = Math.max(f.box[2], f.box[3] * srcAspect);
+    let ch = cw / srcAspect;
+    let x0 = Math.max(0, Math.min(VBW - cw, f.box[0] + f.box[2] / 2 - cw / 2));
+    let y0 = Math.max(0, Math.min(VBH - ch, f.box[1] + f.box[3] / 2 - ch / 2));
+    if (cw > VBW) { cw = VBW; x0 = 0; }
+    if (ch > VBH) { ch = VBH; y0 = 0; }
+
+    const k = frameW / VBW;
+    const [bx0, by0] = [x0 === 0 ? f.box[0] * k : f.box[0] * k, f.box[1] * k];
+    const bx1 = bx0 + f.box[2] * k, by1 = by0 + f.box[3] * k;
+
+    lens.hidden = false;
+    lens.style.width = lensW + 'px';
+    lensSvg.style.height = lensH + 'px';
+    lensSvg.setAttribute('viewBox', [x0, y0, cw, ch].join(' '));
+    if (lensImage.getAttribute('href') !== f.href) lensImage.setAttribute('href', f.href);
+    lensLabel.textContent = f.label + ' · 原畫面放大';
+
+    const uiSync = $q('#ui-state');
+    let overlayHtml = '';
+    if (uiSync && uiSync.innerHTML.trim()) overlayHtml = uiSync.innerHTML.replace(/\sid="[^"]*"/g, '');
+    else if (hot) {
+      overlayHtml = `<rect x="${box[0]}" y="${box[1]}" width="${box[2]}" height="${box[3]}" rx="4" fill="#1674d610" stroke="#1674d6" stroke-width="3"/>`;
+    }
+    if (overlayHtml !== lastOverlay) { lensOverlay.innerHTML = overlayHtml; lastOverlay = overlayHtml; }
+
+    const margin = 5, headH = 22;
+    let lx = (bx0 + bx1) / 2 < frameW / 2 ? frameW - lensW - margin : margin;
+    let ly = (by0 + by1) / 2 < frameH / 2 ? frameH - lensH - margin : headH + margin;
+    if (lx < bx1 + 6 && lx + lensW > bx0 - 6 && ly < by1 + 6 && ly + lensH > by0 - 6) {
+      const above = by0 - lensH - 8, below = by1 + 8;
+      if (above >= headH + margin) ly = above;
+      else if (below + lensH <= frameH - margin) ly = below;
+    }
+    lx = Math.max(margin, Math.min(frameW - lensW - margin, lx));
+    ly = Math.max(headH + margin, Math.min(frameH - lensH - margin, ly));
+    lens.style.left = Math.round(lx) + 'px';
+    lens.style.top = Math.round(ly) + 'px';
+
+    const fromX = Math.max(bx0, Math.min(bx1, lx + lensW / 2));
+    const fromY = (ly + lensH / 2 < by0) ? by0 : by1;
+    const toX = Math.max(lx, Math.min(lx + lensW, (bx0 + bx1) / 2));
+    const toY = (ly + lensH / 2 < by0) ? ly + lensH : ly;
+    connector.style.display = '';
+    connectorPath.setAttribute('d', `M${Math.round(fromX)} ${Math.round(fromY)}L${Math.round(toX)} ${Math.round(toY)}`);
+  }
 
   // ── 字幕：依旁白分句顯示，每段不超過兩行 ────────────────────────────
   const MAXCHARS = 40;
@@ -132,8 +230,9 @@
   const v2RenderCue = renderCue;
   renderCue = function () {
     v2RenderCue();
+    lastKey = ''; lastOverlay = '';
     header.querySelector('h1').textContent =
-      `MM3D PLUS｜05-${cue + 1} ${(CUES[step][cue] || {}).label || ''}`;
+      `MM3D PLUS｜${String(dispStep(step)).padStart(2, '0')}-${cue + 1} ${(CUES[step][cue] || {}).label || ''}`;
     if (subtitleEl) subtitleEl.textContent = (CUES[step][cue] || {}).text || '';
     const pauseBtn = $q('#pause');
     $q('#replay').textContent = '↻ 重播';
@@ -157,19 +256,23 @@
   const pauseBtn = $q('#pause');
 
   function syncNavLabels() {
+    const i = flatIndex();
     prevBtn.disabled = false;
-    prevBtn.textContent = cue <= 0 ? (CFG.prevPage ? '← 回 04-3' : '← 已是第一段') : '← 上一段';
-    nextBtn.textContent = cue >= CUES[step].length - 1 ? '已到 05 最後一段' : '下一段 →';
-    nextBtn.disabled = cue >= CUES[step].length - 1;
+    prevBtn.textContent = i <= 0 ? (CFG.prevPage ? '← 上一頁' : '← 已是第一段') : '← 上一段';
+    const last = i >= FLAT.length - 1;
+    nextBtn.textContent = last ? (CFG.nextPage ? '下一頁 →' : '已是最後一段') : '下一段 →';
+    nextBtn.disabled = last && !CFG.nextPage;
   }
-  function goTo(i) {
+  function goFlat(i) {
     if (i < 0) { if (CFG.prevPage) location.href = CFG.prevPage; return; }
-    if (i >= CUES[step].length) return;
+    if (i >= FLAT.length) { if (CFG.nextPage) location.href = CFG.nextPage; return; }
     closeZoom();
-    startCue(i);
+    const [s, j] = FLAT[i];
+    if (s === step) startCue(j);
+    else startStep(s);
   }
-  nextBtn.onclick = () => goTo(cue + 1);
-  prevBtn.onclick = () => goTo(cue - 1);
+  nextBtn.onclick = () => goFlat(flatIndex() + 1);
+  prevBtn.onclick = () => goFlat(flatIndex() - 1);
   replayBtn.onclick = () => { closeZoom(); startCue(cue); };
   pauseBtn.onclick = () => { if (ended) { startCue(cue); return; } togglePause(); };
   narration.addEventListener('ended', () => {
@@ -223,17 +326,17 @@
   const startCover = document.createElement('div');
   startCover.className = 'v2-start';
   startCover.innerHTML =
-    '<div><h2>MM3D PLUS<br>STEP 05 手機版</h2>' +
-    '<p>完整版顯示的 STEP 05「進入 3D 多層校正」。<br>影片操作畫面會同步放大，每段播完停住，按「下一段」再繼續。</p>' +
+    `<div><h2>MM3D PLUS<br>${CFG.title || '手機版'}</h2>` +
+    '<p>' + (CFG.intro || '影片操作畫面會同步放大。每一小段播完會停住，按「下一段」再繼續。') + '</p>' +
     '<button>開始預覽 ▶</button></div>';
   document.body.append(startCover);
-  startCover.querySelector('button').onclick = () => { startCover.remove(); goTo(0); };
+  startCover.querySelector('button').onclick = () => { startCover.remove(); goFlat(0); };
 
-  step = 0; cue = 0;
+  step = FIRST; cue = 0;
   page();
   renderCue();
   renderState(stateAt(0));
-  if (subtitleEl) subtitleEl.textContent = '準備開始 STEP 05';
+  if (subtitleEl) subtitleEl.textContent = '準備開始';
   syncNavLabels();
   syncReadout();
   v2Resize();
@@ -247,6 +350,7 @@
       if (subtitleEl.textContent !== text) subtitleEl.textContent = text;
     }
     syncReadout();
+    layoutLens();
     if (videoLens) videoLens.update();
     requestAnimationFrame(tick);
   }
