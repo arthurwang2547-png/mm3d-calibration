@@ -71,6 +71,17 @@
     if (hot) {
       const b = ['x', 'y', 'width', 'height'].map((kk) => +hot.getAttribute(kk));
       if (b.every(Number.isFinite)) hb = { x: dx + b[0] * k, y: dy + b[1] * k, w: b[2] * k, h: b[3] * k };
+      // 章節內建的裁切框最小 260x130，放大倍率不夠；這裡收緊到剛好框住焦點，
+      // 只改 viewBox，#detail-svg 的內容（同一張原圖）不動。
+      if (hb && detailSvg) {
+        const cw = Math.max(150, Math.min(b[2] + 70, 340));
+        const ch = cw / 2;
+        const cx = b[0] + b[2] / 2, cy = b[1] + b[3] / 2;
+        const x0 = Math.max(0, Math.min(VBW - cw, cx - cw / 2));
+        const y0 = Math.max(0, Math.min(VBH - ch, cy - ch / 2));
+        const vb = [Math.round(x0), Math.round(y0), Math.round(cw), Math.round(ch)].join(' ');
+        if (detailSvg.getAttribute('viewBox') !== vb) detailSvg.setAttribute('viewBox', vb);
+      }
     }
     const w = Math.max(140, Math.round(Math.min(ar.width * 0.56, 232)));
     const h = Math.round(w / 2) + 20;                       // 章節的 viewBox 是 2:1，再加標題列
@@ -285,6 +296,10 @@
     syncHeader();
     syncNavLabels();
     syncReadout();
+    // 11-15 章的量測／層數畫面底部有自己的流程按鈕，讀值條要讓開
+    const m = $q('#measurement'), cap = $q('#capacity');
+    const covered = (m && !m.hidden) || (cap && !cap.hidden);
+    if (principle.classList.contains('v2-hide-readout') !== !!covered) principle.classList.toggle('v2-hide-readout', !!covered);
     layoutDetail();
     requestAnimationFrame(tick);
   }

@@ -88,9 +88,28 @@
     if (videoLens) videoLens.update();
   }
 
+  // ── 影片標示框的「新鮮度」────────────────────────────────────────────
+  // 06-10 章只在 STEP 05 與 STEP 09 的影片片段給了標示框；其他影片片段沒有框，
+  // 但 #video-overlay 會留著上一段的內容，於是畫面會出現不該存在的標示與提示。
+  // 這裡自己判斷「這一段有沒有真的更新過」，沒更新就當作沒有框。
+  let overlayFresh = false, lastCueKey = '';
+  const v2RenderUI = renderUI;
+  renderUI = function (s) {
+    const key = `${step}:${cue}`;
+    if (key !== lastCueKey) { lastCueKey = key; overlayFresh = false; }
+    const ov = $q('#video-overlay');
+    const before = ov ? ov.innerHTML : '';
+    v2RenderUI(s);
+    const after = ov ? ov.innerHTML : '';
+    if (!after) overlayFresh = false;
+    else if (after !== before) overlayFresh = true;
+    if (ov) ov.style.visibility = overlayFresh ? '' : 'hidden';
+  };
+
   // ── 影片局部放大：用章節自己在 #video-overlay 畫的框換算 ─────────────
   const videoLens = window.V2VideoLens ? window.V2VideoLens(frame, () => {
     if (stage.classList.contains('full')) return null;
+    if (!overlayFresh) return null;
     const vid = $q('#screen-video');
     if (!vid || !vid.videoWidth) return null;
     if (!frame.classList.contains('video-mode')) return null;

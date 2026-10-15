@@ -529,8 +529,10 @@ body#mobile-v2{
 #mobile-v2 .shotwrap{
   position:absolute!important;inset:22px 0 0!important;padding:0!important;display:block!important;overflow:hidden!important}
 /* 01-05 章的操作面板沒有 #screen-frame，直接讓 #shot 填滿 .shotwrap，
-   由 SVG 自己的 preserveAspectRatio 維持原圖比例（letterbox），不拉伸不變形 */
-#mobile-v2 #shot{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;display:block!important}
+   由 SVG 自己的 preserveAspectRatio 維持原圖比例（letterbox），不拉伸不變形。
+   注意要限定「.shotwrap 的直接子元素」，否則會蓋掉 06-10 章
+   #screen-frame.video-mode #shot{display:none} 的顯隱邏輯，讓靜態截圖蓋住影片。 */
+#mobile-v2 .shotwrap > #shot{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;display:block!important}
 #mobile-v2 #screen-frame{position:relative!important;flex:none!important;border-radius:0!important;box-shadow:none!important;background:#f0f1f2!important;overflow:hidden!important}
 
 /* 只保留操作畫面與 3D 畫面，其餘電腦版浮動卡片全部收起 */
@@ -578,6 +580,8 @@ body#mobile-v2{
   border-top:1px solid #e0e9f0;background:#f9fcfe;font-size:12px;font-weight:650;color:#196f84;z-index:6;pointer-events:none}
 #mobile-v2 .v2-height b{font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 #mobile-v2 .v2-height small{font-weight:400;font-size:9px;margin-left:auto;color:#738b9b;white-space:nowrap}
+/* 11-15 章的量測／層數畫面自己底部就有流程按鈕，讀值條會蓋住它們 */
+#mobile-v2 #principle.v2-hide-readout .v2-height{display:none!important}
 
 /* ── 局部放大框（取自原畫面同一張圖，用 viewBox 裁切）───────── */
 #mobile-v2 .v2-lens{
@@ -598,7 +602,7 @@ body#mobile-v2{
 #mobile-v2 .op-area{
   position:absolute!important;left:0!important;right:0!important;top:22px!important;bottom:0!important;
   padding:0!important;display:block!important;justify-content:flex-start!important;align-items:stretch!important;overflow:hidden!important}
-#mobile-v2 #screen{width:100%!important;height:100%!important;display:block!important}
+#mobile-v2 #screen{width:100%!important;height:100%!important}
 /* 章節原本的浮動動作列內容與頂部標題重複，收起來，把高度讓給操作畫面 */
 #mobile-v2 .action{display:none!important}
 
@@ -614,8 +618,9 @@ body#mobile-v2{
   white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
 #mobile-v2 #detail-svg{display:block!important;width:100%!important;height:auto!important;aspect-ratio:2!important}
 
-/* 影片片段：沿用原影片與原比例 */
-#mobile-v2 #video-shell{position:absolute!important;inset:0 8px!important;display:flex!important;flex-direction:column!important;justify-content:center!important}
+/* 影片片段：沿用原影片與原比例。
+   不可加 display，否則會蓋掉 #video-shell 的 hidden，讓上一段的影片畫面留在畫面上。 */
+#mobile-v2 #video-shell{position:absolute!important;inset:0 8px!important;flex-direction:column!important;justify-content:center!important}
 #mobile-v2 #op-video{width:100%!important;height:calc(100% - 22px)!important;object-fit:contain!important;min-height:0!important}
 #mobile-v2 #video-caption{font-size:9px!important;text-align:center!important;color:#6d8b99!important}
 /* 滾輪卡與試刻子畫面：縮小並貼角落，讓出中間給放大框 */
@@ -892,9 +897,28 @@ window.V2VideoLens = function (host, getBox) {
     if (videoLens) videoLens.update();
   }
 
+  // ── 影片標示框的「新鮮度」────────────────────────────────────────────
+  // 06-10 章只在 STEP 05 與 STEP 09 的影片片段給了標示框；其他影片片段沒有框，
+  // 但 #video-overlay 會留著上一段的內容，於是畫面會出現不該存在的標示與提示。
+  // 這裡自己判斷「這一段有沒有真的更新過」，沒更新就當作沒有框。
+  let overlayFresh = false, lastCueKey = '';
+  const v2RenderUI = renderUI;
+  renderUI = function (s) {
+    const key = `${step}:${cue}`;
+    if (key !== lastCueKey) { lastCueKey = key; overlayFresh = false; }
+    const ov = $q('#video-overlay');
+    const before = ov ? ov.innerHTML : '';
+    v2RenderUI(s);
+    const after = ov ? ov.innerHTML : '';
+    if (!after) overlayFresh = false;
+    else if (after !== before) overlayFresh = true;
+    if (ov) ov.style.visibility = overlayFresh ? '' : 'hidden';
+  };
+
   // ── 影片局部放大：用章節自己在 #video-overlay 畫的框換算 ─────────────
   const videoLens = window.V2VideoLens ? window.V2VideoLens(frame, () => {
     if (stage.classList.contains('full')) return null;
+    if (!overlayFresh) return null;
     const vid = $q('#screen-video');
     if (!vid || !vid.videoWidth) return null;
     if (!frame.classList.contains('video-mode')) return null;
