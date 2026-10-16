@@ -1,0 +1,773 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>MM3D PLUS｜STEP 01 先把焦點對出來（版面示範）</title>
+<!--
+  STEP 01 開場重新設計 ── 手機版版面示範 v0.2
+
+  目的：把「焦距高度」的順序改成實際操作會走的路：
+    01-1 手動移動加工平台 Z ＋ 連續雕刻，讓中心點對到最亮
+    01-2 停止雕刻。這個焦平面就是振鏡出廠設計的 Z0（中立位置）
+    01-3 量平台面到振鏡基準的距離，量到多少填多少
+
+  單一檔案、離線可開、沒有接機也沒有外部素材。
+  光路、試刻痕跡、對焦指示都是示意，用途是跟 RD 對版面與順序。
+
+  審稿快速跳段： #step2 / #step3 / #done / #why / #start
+-->
+<style>
+:root{
+  --ink:#173b50; --ink2:#203e55; --muted:#748b9a; --line:#d6e2e9;
+  --teal:#078d98; --teal-lite:#0db8a3; --blue:#1674d6; --orange:#ef8a23;
+  --header:#183e59; --panel:#f8fbfd; --panel-line:#ccdae5; --primary:#1b4c70;
+  --bg:#eef3f7; --stop:#b6483c;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0;overflow:hidden}
+body{
+  height:var(--app-h,100dvh);
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  display:grid;grid-template-rows:44px 46px minmax(0,1fr) auto auto;
+  background:var(--bg);color:var(--ink2);
+  font:14px/1.45 -apple-system,BlinkMacSystemFont,'PingFang TC','Noto Sans TC',sans-serif;
+}
+button{font:inherit;color:var(--ink2);background:#fff;border:1px solid var(--line);border-radius:8px;cursor:pointer;touch-action:manipulation}
+button:disabled{opacity:.45;cursor:default}
+.hidden{display:none!important}
+
+/* ── 頂部 ───────────────────────────────────────────────── */
+.v2-header{display:flex;align-items:center;gap:8px;padding:0 8px 0 12px;background:var(--header);color:#fff;min-width:0}
+.v2-header h1{font-size:12.5px;font-weight:650;margin:0;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v2-header button{width:38px;height:38px;flex:none;border:0;background:transparent;color:#fff;font-size:17px;padding:0}
+
+/* ── 步驟軌道：順序一眼看得到 ───────────────────────────── */
+.rail{display:flex;align-items:center;gap:3px;padding:0 8px;background:#fff;border-bottom:1px solid var(--line)}
+.rail button{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;height:40px;border:0;background:transparent;padding:0;border-radius:8px}
+.rail i{width:19px;height:19px;border-radius:50%;display:grid;place-items:center;flex:none;background:#e6eef4;color:#8298a7;font-size:11px;font-style:normal;font-weight:700}
+.rail span{font-size:9.5px;color:#8ba0ae;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.rail .link{flex:none;width:11px;height:1px;background:#d2dfe8;margin:0 -2px 14px}
+.rail button[data-st="now"] i{background:var(--primary);color:#fff}
+.rail button[data-st="now"] span{color:var(--primary);font-weight:650}
+.rail button[data-st="done"] i{background:var(--teal-lite);color:#fff}
+.rail button[data-st="done"] span{color:#5d7d8e}
+
+/* ── 舞台 ───────────────────────────────────────────────── */
+.stage{min-height:0;display:grid;grid-template-rows:minmax(0,1fr) auto;gap:6px;padding:6px 8px}
+.panel{position:relative;min-height:0;border:1px solid var(--panel-line);border-radius:10px;background:var(--panel);overflow:hidden}
+.panelhead{height:22px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 9px;background:#ffffffed;border-bottom:1px solid #e4ecf2;font-size:10px;color:#7c95a5}
+.panelhead b{color:#385d74;font-weight:650;font-size:10px}
+.panelhead .task{color:#1c609c;background:#eef6fe;border:1px solid #cfe1f3;border-radius:20px;padding:1px 7px;font-size:9.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60%}
+
+/* 光路側視 */
+.svgwrap{position:absolute;inset:22px 0 26px;display:grid;place-items:center}
+#scene{width:100%;height:100%;display:block}
+.readout{position:absolute;left:0;right:0;bottom:0;height:26px;display:flex;align-items:center;gap:8px;padding:0 9px;border-top:1px solid #e0e9f0;background:#f9fcfe;font-size:11.5px;font-weight:650;color:#196f84}
+.readout b{font-variant-numeric:tabular-nums;white-space:nowrap}
+.readout small{margin-left:auto;font-weight:400;font-size:9.5px;color:#738b9b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* 材料試刻 */
+.material{display:grid;grid-template-columns:auto minmax(0,1fr);gap:9px;padding:8px 9px;align-items:center}
+#mark{display:block;height:min(27vw,124px);width:auto;aspect-ratio:4/3;border-radius:7px;border:1px solid #2b4a5c;background:#0d0e10}
+.matright{display:flex;flex-direction:column;gap:5px;min-width:0}
+.metric{display:flex;align-items:center;gap:6px}
+.metric span{font-size:9.5px;color:#7c95a5;white-space:nowrap}
+.bar{flex:1;height:7px;border-radius:5px;background:#e3ebf1;overflow:hidden;min-width:20px}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#8fd6cf,#0db8a3)}
+.metric b{font-size:10.5px;color:#196f84;font-variant-numeric:tabular-nums;min-width:30px;text-align:right}
+.matnote{font-size:10px;line-height:1.45;color:#7c95a5}
+.matnote strong{color:#1c609c;font-weight:650}
+.matnote.tiny{font-size:9px;color:#a4b4bf}
+
+/* ── 控制區（每一步只出現那一步要用的）────────────────── */
+.controls{padding:7px 10px 9px;background:#fff;border-top:1px solid var(--line);display:grid;gap:6px}
+.ctlrow{display:flex;align-items:baseline;gap:8px}
+.ctlrow span{font-size:11.5px;color:#5d7d8e;font-weight:600}
+.ctlrow output{margin-left:auto;font-size:19px;font-weight:700;color:var(--primary);font-variant-numeric:tabular-nums;letter-spacing:-.3px}
+.ctlrow output em{font-size:11px;font-style:normal;color:#8ba0ae;font-weight:500;margin-left:2px}
+#zslider{width:100%;height:22px;accent-color:var(--teal);margin:0}
+.jogrow{display:grid;grid-template-columns:52px minmax(0,1fr) 52px;gap:7px;align-items:center}
+.jogrow>button{height:44px;font-size:22px;font-weight:700;border-radius:10px;color:var(--primary);background:#f4f9fc;border-color:#cfe0ec}
+.jogrow>button:active{background:#e6f2f8}
+.steps{display:flex;gap:4px;justify-content:center;min-width:0}
+.steps button{flex:1;height:36px;font-size:11.5px;padding:0 2px;min-width:0;font-variant-numeric:tabular-nums}
+.steps button small{display:block;font-size:8.5px;color:#8ba0ae;font-weight:400}
+.steps button[aria-pressed="true"]{background:var(--primary);border-color:var(--primary);color:#fff;font-weight:650}
+.steps button[aria-pressed="true"] small{color:#bcd6e6}
+
+/* Z0 鎖定列 */
+.lockrow{display:flex;align-items:center;gap:8px;padding:9px 11px;border-radius:10px;background:#f1faf8;border:1px solid #cfeae5}
+.lockrow i{width:20px;height:20px;border-radius:50%;background:var(--teal-lite);color:#fff;font-style:normal;font-size:12px;display:grid;place-items:center;flex:none}
+.lockrow span{font-size:12px;color:#0a7d74;font-weight:600}
+.lockrow b{margin-left:auto;font-size:18px;color:#0a7d74;font-variant-numeric:tabular-nums}
+
+/* 焦距高度輸入 */
+.field{display:grid;grid-template-columns:48px minmax(0,1fr) 48px;gap:7px;align-items:center}
+.field button{height:44px;font-size:20px;font-weight:700;color:var(--primary);background:#f4f9fc;border-color:#cfe0ec}
+.field input{height:44px;width:100%;text-align:center;font:inherit;font-size:21px;font-weight:700;color:var(--primary);border:1px solid #cfe0ec;border-radius:9px;background:#fff;font-variant-numeric:tabular-nums;padding:0 4px}
+.field input::-webkit-outer-spin-button,.field input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.chips{display:flex;gap:5px}
+.chips button{flex:1;height:30px;font-size:11px;padding:0}
+.chips button.on{background:#eef6fe;border-color:#9dc3e6;color:#1c609c;font-weight:650}
+.zref{font-size:9.5px;color:#93a7b4;text-align:center}
+
+/* ── 底部：一句話 + 主要動作 ────────────────────────────── */
+.foot{padding:8px 10px calc(10px + env(safe-area-inset-bottom));background:#fff;display:grid;gap:7px}
+.hint{font-size:12.5px;line-height:1.5;color:#2b4a60;min-height:38px}
+.hint strong{color:#0b7c88;font-weight:650}
+.hint .warn{color:#b6483c;font-weight:600}
+.cta{height:50px;border:0;border-radius:10px;background:var(--primary);color:#fff;font-size:15px;font-weight:650;width:100%}
+.cta.stop{background:var(--stop)}
+.cta2{height:38px;width:100%;font-size:12.5px;color:#5d7d8e;background:#f6f9fb}
+
+/* ── 覆蓋層 ─────────────────────────────────────────────── */
+.veil{position:fixed;inset:0;z-index:70;background:#eef4f9f2;backdrop-filter:blur(4px);display:grid;place-items:center;padding:22px;overflow-y:auto}
+.veil[hidden]{display:none!important}
+.veil .card{max-width:330px;text-align:center;margin:auto}
+.veil h2{font-size:22px;line-height:1.35;margin:0 0 10px;color:#23445e}
+.veil p{font-size:13.5px;line-height:1.7;color:#637f94;margin:0 0 16px}
+.veil .mini{display:grid;gap:6px;margin:0 0 18px;text-align:left}
+.veil .mini div{display:flex;gap:8px;align-items:flex-start;font-size:12px;color:#4c6b80;background:#fff;border:1px solid #dbe7ef;border-radius:9px;padding:7px 10px}
+.veil .mini i{width:17px;height:17px;border-radius:50%;background:#e6eef4;color:#6d8698;font-style:normal;font-size:10px;font-weight:700;display:grid;place-items:center;flex:none;margin-top:1px}
+.veil .mini b{font-weight:650;color:#23445e}
+.veil button.go{height:50px;min-width:215px;border:0;border-radius:10px;background:var(--primary);color:#fff;font-size:15px;font-weight:650}
+.veil button.txt{border:0;background:transparent;color:#5d7d8e;font-size:12.5px;text-decoration:underline;padding:10px 0 0;display:block;margin:0 auto}
+.veil small{display:block;margin-top:12px;font-size:10.5px;color:#93a7b4}
+.sum{background:#fff;border:1px solid #dbe7ef;border-radius:11px;padding:12px;display:grid;gap:8px;text-align:left}
+.sum .row{display:flex;align-items:baseline;gap:8px;font-size:12.5px;color:#5d7d8e}
+.sum .row b{margin-left:auto;font-size:16px;color:var(--primary);font-variant-numeric:tabular-nums}
+.sum .row b.t{color:var(--teal)}
+.sum .tips{font-size:11px;line-height:1.6;color:#7c95a5;border-top:1px solid #eaf0f4;padding-top:7px}
+.sum .tips b{color:#0a7d74}
+
+/* 為什麼（舊 vs 新） */
+.sheet{position:fixed;inset:0;z-index:80;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch}
+.sheet[hidden]{display:none!important}
+.sheet .bar{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:8px;height:44px;padding:0 8px 0 12px;background:var(--header);color:#fff}
+.sheet .bar b{font-size:13px;font-weight:650;flex:1}
+.sheet .bar button{width:38px;height:38px;border:0;background:transparent;color:#fff;font-size:19px}
+.sheet .body{padding:12px 12px 34px;display:grid;gap:12px}
+.sheet .box{background:#fff;border:1px solid #dbe7ef;border-radius:10px;padding:11px 12px;display:grid;gap:7px}
+.sheet h3{font-size:13px;margin:0;color:#23445e}
+.sheet h3 em{font-style:normal;color:#8ba0ae;font-weight:400;font-size:11px;margin-left:5px}
+.sheet p{font-size:12.5px;line-height:1.7;color:#4c6b80;margin:0}
+.sheet p b{color:#23445e}
+.sheet ol{margin:0;padding-left:19px;font-size:12.5px;line-height:1.75;color:#4c6b80}
+.sheet ol b{color:#23445e}
+.sheet .bad{background:#fdf3f1;border-color:#f0d5d0}
+.sheet .bad h3{color:#a8412f}
+.sheet .good{background:#f1faf8;border-color:#cfeae5}
+.sheet .good h3{color:#0a7d74}
+.sheet .kv{display:grid;gap:6px}
+.sheet .kv div{display:grid;grid-template-columns:92px minmax(0,1fr);gap:8px;font-size:12px;line-height:1.6}
+.sheet .kv dt{color:#196f84;font-weight:650}
+.sheet .kv dd{margin:0;color:#4c6b80}
+
+@media(orientation:landscape){
+  body{grid-template-rows:38px minmax(0,1fr) auto}
+  .rail{display:none}
+  .stage{grid-template-rows:minmax(0,1fr);grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}
+  .stage>.panel{grid-column:1;grid-row:1}
+  .stage>.material{grid-column:2;grid-row:1;align-content:center}
+  .hint{min-height:0}
+  #mark{height:min(30vh,150px)}
+}
+</style>
+</head>
+<body>
+
+<header class="v2-header">
+  <h1>MM3D PLUS｜STEP 01 先把焦點對出來</h1>
+  <button id="whyBtn" aria-label="說明" title="為什麼這樣排">ⓘ</button>
+</header>
+
+<nav class="rail" id="rail" aria-label="步驟"></nav>
+
+<main class="stage">
+  <section class="panel" aria-label="光路側視">
+    <div class="panelhead">
+      <span><b id="panelStep">01-1 測焦點</b></span>
+      <span class="task" id="panelTask">任務：讓中心點對到最亮</span>
+    </div>
+    <div class="svgwrap">
+      <svg id="scene" viewBox="0 0 340 300" preserveAspectRatio="xMidYMid meet" role="img" aria-label="振鏡、聚焦軸與加工平台的側視光路">
+        <defs>
+          <linearGradient id="gGalvo" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#35688b"/><stop offset="1" stop-color="#1b4059"/>
+          </linearGradient>
+          <linearGradient id="gPlat" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#e6eef4"/><stop offset="1" stop-color="#b6c9d9"/>
+          </linearGradient>
+          <linearGradient id="gBeam" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#ffc46b" stop-opacity=".78"/>
+            <stop offset="1" stop-color="#ff7a18" stop-opacity=".30"/>
+          </linearGradient>
+          <!-- 機台本體：讓平台下方的空間有意義，不是空白 -->
+          <pattern id="pBase" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <rect width="9" height="9" fill="#f4f8fb"/>
+            <line x1="0" y1="0" x2="0" y2="9" stroke="#e0e9f0" stroke-width="1.6"/>
+          </pattern>
+        </defs>
+
+        <!-- 機台本體（在平台下方，隨平台升降改變露出高度） -->
+        <rect id="base" x="22" y="234" width="296" height="66" fill="url(#pBase)"/>
+        <text x="150" y="292" text-anchor="middle" font-size="9" fill="#a8bccb">Z 軸機台</text>
+
+        <!-- 雷射光路 -->
+        <polygon id="beam" fill="url(#gBeam)"/>
+
+        <!-- 振鏡（聚焦軸鏡片在頭內，三焦振鏡的真實結構） -->
+        <rect x="76" y="20" width="148" height="72" rx="6" fill="url(#gGalvo)"/>
+        <text x="88" y="40" font-size="11" fill="#dcecf5">振鏡</text>
+        <path d="M136 50 L164 50 L150 64 Z" fill="#7fd8e8" opacity=".85"/>
+        <ellipse cx="150" cy="76" rx="28" ry="6" fill="#eaf7f9" stroke="#0db8a3" stroke-width="1.6"/>
+        <text x="232" y="80" font-size="9" fill="#0a8b83">聚焦軸（中立）</text>
+
+        <!-- 量測基準 -->
+        <line x1="68" y1="92" x2="232" y2="92" stroke="#8aa3b3" stroke-width="1"/>
+        <line x1="68" y1="88" x2="68" y2="96" stroke="#8aa3b3" stroke-width="1"/>
+        <line x1="232" y1="88" x2="232" y2="96" stroke="#8aa3b3" stroke-width="1"/>
+        <text x="238" y="95" font-size="9" fill="#7c95a5">量測基準</text>
+
+        <!-- 焦距高度尺寸線（軸向壓縮，中間有斷裂符號；只示意，值以讀值為準） -->
+        <g id="dimGroup">
+          <line id="dimLine" x1="26" y1="92" x2="26" y2="164" stroke="#5d7d8e" stroke-width="1"/>
+          <line x1="20" y1="92" x2="32" y2="92" stroke="#5d7d8e" stroke-width="1"/>
+          <line id="dimT2" x1="20" y1="164" x2="32" y2="164" stroke="#5d7d8e" stroke-width="1"/>
+          <g id="dimBreak" stroke="#5d7d8e" stroke-width="1"><line/><line/></g>
+          <text id="dimText" x="15" y="128" font-size="12.5" font-weight="700" fill="#196f84" text-anchor="middle" transform="rotate(-90 15 128)">—</text>
+        </g>
+
+        <!-- 加工平台 ＋ 材料 -->
+        <rect id="material" x="54" y="220" width="190" height="4" fill="#15171a"/>
+        <rect id="platform" x="40" y="224" width="218" height="10" rx="2" fill="url(#gPlat)" stroke="#9db3c4" stroke-width="1"/>
+        <text id="platLabel" x="264" y="232" font-size="9" fill="#7c95a5">加工平台</text>
+
+        <!-- 焦平面：01-2 才揭曉。畫在平台之上，落焦時會正好切過材料表面。
+             文字加同底色描邊，壓到平台或機台時仍看得清楚。 -->
+        <g id="focalGroup" opacity="0">
+          <line x1="30" y1="164" x2="300" y2="164" stroke="#0db8a3" stroke-width="1.4" stroke-dasharray="6 4"/>
+          <circle cx="150" cy="164" r="2.8" fill="#0db8a3"/>
+          <text x="296" y="159" text-anchor="end" font-size="9.5" fill="#0a8b83"
+                stroke="#f8fbfd" stroke-width="3" paint-order="stroke">焦平面 ＝ Z0</text>
+        </g>
+      </svg>
+    </div>
+    <div class="readout"><b id="roMain">—</b><small id="roSub"></small></div>
+  </section>
+
+  <section class="panel material" aria-label="中心點試刻">
+    <canvas id="mark" width="236" height="177"></canvas>
+    <div class="matright">
+      <div class="metric">
+        <span>示範對焦</span>
+        <div class="bar"><i id="qbar"></i></div>
+        <b id="qval">—</b>
+      </div>
+      <div class="matnote" id="matNote">中心點試刻區。<strong>黑紙或金屬片</strong>上看痕跡亮不亮，是判斷落焦的依據。</div>
+      <div class="matnote tiny">＊示範用指示，實機以目視試刻為準</div>
+    </div>
+  </section>
+</main>
+
+<section class="controls">
+  <!-- 01-1：手動移動加工平台 -->
+  <div id="zBlock">
+    <div class="ctlrow"><span>加工平台 Z 軸（手動）</span><output id="zOut">—<em>mm</em></output></div>
+    <input id="zslider" type="range" min="239" max="252" step="0.01" aria-label="加工平台 Z 軸">
+    <div class="jogrow">
+      <button id="zUp" aria-label="Z 值減小，平台靠近振鏡">−</button>
+      <div class="steps" id="steps"></div>
+      <button id="zDown" aria-label="Z 值增大，平台遠離振鏡">＋</button>
+    </div>
+  </div>
+
+  <!-- 01-2：Z0 已鎖定 -->
+  <div id="lockBlock" class="hidden">
+    <div class="lockrow"><i>✓</i><span>Z0 中立位置（已鎖定）</span><b id="lockVal">—</b></div>
+  </div>
+
+  <!-- 01-3：量測填入 -->
+  <div id="focalBlock" class="hidden">
+    <div class="ctlrow"><span>實測焦距高度</span></div>
+    <div class="field">
+      <button id="fMinus" aria-label="減 1">−</button>
+      <input id="focalInput" type="number" inputmode="decimal" step="0.1" value="240.0" aria-label="實測焦距高度">
+      <button id="fPlus" aria-label="加 1">＋</button>
+    </div>
+    <div class="chips" id="fchips">
+      <button data-v="240">量到 240</button><button data-v="245">245</button><button data-v="248">量到 248</button>
+    </div>
+    <div class="zref" id="zref">軟體 Z 讀值 245.00 mm</div>
+  </div>
+</section>
+
+<footer class="foot">
+  <div class="hint" id="hint"></div>
+  <button class="cta2 hidden" id="cta2"></button>
+  <button class="cta" id="cta"></button>
+</footer>
+
+<!-- 起始頁 -->
+<div class="veil" id="startVeil">
+  <div class="card">
+    <h2>先把焦點對出來</h2>
+    <p>振鏡裝好後，第一件事是找到中心點的焦點。找到之後，這個高度就是 <b>Z0（中立位置）</b>，後面所有校正都以它為基準。</p>
+    <div class="mini">
+      <div><i>1</i><span><b>測焦點</b>　手動移動加工平台 ＋ 連續雕刻</span></div>
+      <div><i>2</i><span><b>確認 Z0</b>　停止雕刻，記下焦平面</span></div>
+      <div><i>3</i><span><b>填入焦距高度</b>　量到多少填多少</span></div>
+    </div>
+    <button class="go" id="startGo">開始：先測焦點 ▶</button>
+    <button class="txt" id="startWhy">先看為什麼要這樣排（約 30 秒）</button>
+    <small>版面示範 · 不需接機</small>
+  </div>
+</div>
+
+<!-- 完成摘要 -->
+<div class="veil" id="doneVeil" hidden>
+  <div class="card">
+    <h2>STEP 01 開場完成</h2>
+    <div class="sum">
+      <div class="row">Z0 中立位置（落焦高度）<b id="sumZ0">—</b></div>
+      <div class="row">焦距高度（實測填入）<b class="t" id="sumFocal">—</b></div>
+      <div class="tips" id="sumTips"></div>
+    </div>
+    <button class="go" id="doneNext" style="margin-top:14px">重新示範一次</button>
+    <small>下一段接回原教材：最外圈四點落焦 → 輸出十字中心線</small>
+  </div>
+</div>
+
+<!-- 為什麼（舊 vs 新） -->
+<div class="sheet" id="whySheet" hidden>
+  <div class="bar"><b>為什麼把順序改成這樣</b><button id="whyClose" aria-label="關閉">×</button></div>
+  <div class="body">
+    <div class="box bad">
+      <h3>舊版順序 <em>現在的 01-1、01-2</em></h3>
+      <ol>
+        <li>先量振鏡基準到材料的距離</li>
+        <li>填入焦距高度</li>
+        <li>再微調第三軸，直到材料上的試刻圖形落焦</li>
+      </ol>
+      <p>問題：還沒落焦，就要先填一個「焦距高度」。焦距高度是<b>落焦那一刻</b>量到的距離，順序倒過來，使用者第一步就卡住——他還沒對到焦，怎麼會知道要填多少。</p>
+    </div>
+
+    <div class="box good">
+      <h3>新版順序 <em>這次的設計</em></h3>
+      <ol>
+        <li>手動移動<b>加工平台 Z</b> ＋ <b>連續雕刻</b>，讓中心點對到最亮</li>
+        <li>停止雕刻。這個焦平面就是振鏡出廠設計的 <b>Z0（中立位置）</b></li>
+        <li>量平台面到振鏡基準的距離，<b>量到多少填多少</b></li>
+      </ol>
+      <p>先做出結果，再把結果記下來。每一步只有一個動作、一個判斷，新手也能直接開始。</p>
+    </div>
+
+    <div class="box">
+      <h3>為什麼填 240 或 248 都可以</h3>
+      <p>每個人量的起點、終點、用的工具不一樣，量出來本來就會有差。軟體<b>不檢查</b>這個數字對不對，它只是拿這個值套進各功能（Z0 尺寸校正、多層校正）。只要從頭到尾用同一種量法，量到 240 就一直用 240，量到 248 就一直用 248。</p>
+    </div>
+
+    <div class="box">
+      <h3>術語對照</h3>
+      <div class="kv">
+        <div><dt>加工平台 Z 軸</dt><dd>承載工件、會上下移動的平台高度</dd></div>
+        <div><dt>聚焦軸（第三軸）</dt><dd>振鏡裡的聚焦鏡片，用來微調焦距</dd></div>
+        <div><dt>Z0／中立位置</dt><dd>振鏡出廠設計的焦平面，所有校正的基準</dd></div>
+        <div><dt>焦距高度</dt><dd>落焦時，加工平台面到振鏡量測基準的距離</dd></div>
+      </div>
+    </div>
+
+    <div class="box">
+      <h3>這一頁是版面示範</h3>
+      <p>光路、試刻痕跡、對焦指示都是示意，沒有接機，數值也不是實測值。「示範對焦」指示只是為了讓你判斷有沒有對到，實機請以目視試刻痕跡為準。</p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ── 示範參數 ────────────────────────────────────────────────
+  const CFG = {
+    zMin: 239, zMax: 252,      // 加工平台可動範圍（mm）
+    zStart: 250.00,            // 開場在焦平面下方 5 mm，讓使用者自己往上找
+    focal: 245.00,             // 這一台真正的焦平面高度（示範值）
+    near: 0.60,                // 離焦小於這個值＝「快到了」
+    hit: 0.15,                 // 離焦小於這個值＝「對到了」
+    jog: [0.01, 0.1, 1],
+  };
+  // 側視圖：viewBox 0 0 340 300。Y 軸只畫 239–252 mm 這一段，所以尺寸線帶斷裂符號。
+  const G = { y0: 92, scale: 12, cx: 150, apexHalf: 30 };
+  const yOf = (z) => G.y0 + (z - CFG.zMin) * G.scale;
+  const yFocal = yOf(CFG.focal);
+  const slope = G.apexHalf / (yFocal - G.y0);
+  const VB_H = 300;
+
+  // ── 狀態 ────────────────────────────────────────────────────
+  const S = {
+    step: 1,          // 1 測焦點 / 2 確認 Z0 / 3 量測填入
+    z: CFG.zStart,
+    jogIdx: 2,        // 預設 1 mm 大格
+    engraving: false,
+    everEngraved: false,
+    z0: null,         // 落焦當下的平台高度
+    measured: null,   // 實測填入的焦距高度
+    markQ: null,      // 材料上痕跡的對焦程度 0..1（null＝尚未試刻）
+    markD: 0,         // 當時的離焦量
+    done: false,
+  };
+
+  const $ = (s) => document.querySelector(s);
+  const $$ = (s) => Array.prototype.slice.call(document.querySelectorAll(s));
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const mm = (v, n) => (+v).toFixed(n === undefined ? 2 : n);
+  const liveQ = () => {
+    const d = Math.abs(S.z - CFG.focal);
+    return { d: d, q: clamp(1 - d / 3, 0, 1) };
+  };
+  const signed = (d) => (d < 0.005 ? '0.00' : (S.z > CFG.focal ? '+' : '−') + mm(d));
+
+  // ── 步驟軌道 ────────────────────────────────────────────────
+  const STEPS = [{ n: 1, label: '測焦點' }, { n: 2, label: '確認 Z0' }, { n: 3, label: '填入焦距高度' }];
+  function buildRail() {
+    $('#rail').innerHTML = STEPS.map((s, i) =>
+      (i ? '<span class="link"></span>' : '') +
+      '<button data-step="' + s.n + '"><i>' + s.n + '</i><span>' + s.label + '</span></button>').join('');
+  }
+  $('#rail').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-step]');
+    if (!b) return;
+    const n = +b.dataset.step;
+    if (n < S.step || S.done) gotoStep(n);
+  });
+  function paintRail() {
+    $$('#rail button').forEach((b) => {
+      const n = +b.dataset.step;
+      b.dataset.st = n === S.step ? 'now' : (n < S.step ? 'done' : 'todo');
+    });
+  }
+  function gotoStep(n) {
+    S.step = n;
+    if (n !== 1) S.engraving = false;
+    if (n === 2 && S.z0 === null) S.z0 = S.z;
+    render();
+  }
+
+  // ── 光路側視 ────────────────────────────────────────────────
+  function drawScene() {
+    const yp = yOf(S.z);
+    let pts;
+    if (yp >= yFocal) {
+      const sh = (yp - yFocal) * slope;
+      pts = [[G.cx - G.apexHalf, G.y0], [G.cx, yFocal], [G.cx + sh, yp], [G.cx - sh, yp]];
+    } else {
+      const sh = (yFocal - yp) * slope;
+      pts = [[G.cx - G.apexHalf, G.y0], [G.cx - sh, yp], [G.cx + sh, yp]];
+    }
+    $('#beam').setAttribute('points', pts.map((p) => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' '));
+
+    const base = $('#base');
+    base.setAttribute('y', (yp + 10).toFixed(1));
+    base.setAttribute('height', Math.max(0, VB_H - (yp + 10)).toFixed(1));
+    $('#platform').setAttribute('y', yp.toFixed(1));
+    $('#material').setAttribute('y', (yp - 4).toFixed(1));
+    $('#platLabel').setAttribute('y', (yp + 8).toFixed(1));
+
+    const mid = (G.y0 + yp) / 2;
+    $('#dimLine').setAttribute('y2', yp.toFixed(1));
+    const t2 = $('#dimT2');
+    t2.setAttribute('y1', yp.toFixed(1));
+    t2.setAttribute('y2', yp.toFixed(1));
+    const brk = $('#dimBreak');
+    brk.setAttribute('transform', 'translate(0,' + mid.toFixed(1) + ')');
+    const b1 = brk.children[0], b2 = brk.children[1];
+    b1.setAttribute('x1', 22); b1.setAttribute('y1', -4); b1.setAttribute('x2', 30); b1.setAttribute('y2', 4);
+    b2.setAttribute('x1', 22); b2.setAttribute('y1', 4); b2.setAttribute('x2', 30); b2.setAttribute('y2', -4);
+    const dt = $('#dimText');
+    dt.setAttribute('y', mid.toFixed(1));
+    dt.setAttribute('transform', 'rotate(-90 15 ' + mid.toFixed(1) + ')');
+    dt.textContent = mm(S.z, 1);
+
+    $('#focalGroup').setAttribute('opacity', S.step >= 2 ? '1' : '0');
+  }
+
+  // ── 材料試刻 ────────────────────────────────────────────────
+  const cv = $('#mark');
+  const ctx = cv.getContext('2d');
+  let cvW = 118, cvH = 88, needMark = true;
+  function fitCanvas() {
+    const r = cv.getBoundingClientRect();
+    if (!r.width || !r.height) return false;
+    cvW = r.width; cvH = r.height;
+    const dpr = Math.min(window.devicePixelRatio || 1, 3);
+    const w = Math.round(cvW * dpr), h = Math.round(cvH * dpr);
+    if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return true;
+  }
+  function hatch(x0, y0, side, n, gap, lw) {
+    ctx.lineWidth = lw;
+    ctx.beginPath();
+    for (let i = 1; i <= n; i++) {
+      const y = y0 + (i - 0.5) * gap;
+      ctx.moveTo(x0 + 0.5, y);
+      ctx.lineTo(x0 + side - 0.5, y);
+    }
+    ctx.stroke();
+  }
+  function drawMark(t) {
+    if (!fitCanvas()) return;
+    ctx.clearRect(0, 0, cvW, cvH);
+    const g = ctx.createRadialGradient(cvW / 2, cvH / 2, 2, cvW / 2, cvH / 2, Math.max(cvW, cvH) * 0.75);
+    g.addColorStop(0, '#24262b'); g.addColorStop(1, '#0b0c0e');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, cvW, cvH);
+
+    ctx.strokeStyle = 'rgba(255,255,255,.10)'; ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(cvW / 2, 5); ctx.lineTo(cvW / 2, cvH - 5);
+    ctx.moveTo(5, cvH / 2); ctx.lineTo(cvW - 5, cvH / 2);
+    ctx.stroke();
+
+    if (S.markQ === null) {
+      ctx.fillStyle = 'rgba(255,255,255,.30)';
+      ctx.font = '10px -apple-system,sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('尚未試刻', cvW / 2, cvH / 2 + 3.5);
+      return;
+    }
+    const q = S.markQ, d = Math.min(S.markD, 3);
+    const side = Math.min(cvW, cvH) * 0.30 * (1 + d * 0.42);
+    const n = 9, gap = side / n;
+    const x0 = cvW / 2 - side / 2, y0 = cvH / 2 - side / 2;
+    const flick = S.engraving ? 1 + Math.sin(t / 130) * 0.05 : 1;
+    const alpha = clamp((0.16 + 0.78 * q) * flick, 0.1, 1);
+    const lw = 1 + d * 1.5;
+
+    if (q > 0.30) {
+      ctx.save();
+      ctx.globalAlpha = (q - 0.30) * 0.55;
+      ctx.strokeStyle = '#ffe9b8';
+      hatch(x0, y0, side, n, gap, lw + 3.5);
+      ctx.restore();
+    }
+    ctx.strokeStyle = 'rgba(255,238,203,' + alpha.toFixed(3) + ')';
+    hatch(x0, y0, side, n, gap, lw);
+    ctx.strokeStyle = 'rgba(255,255,255,.14)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x0, y0, side, side);
+  }
+
+  // ── 文案 ────────────────────────────────────────────────────
+  function hintFor() {
+    if (S.step === 1) {
+      const d = liveQ().d;
+      if (!S.everEngraved) return '先按下面的 <strong>開始連續雕刻</strong>。雷射會一直打在中心點，接著用 −／＋ 把加工平台往上移，一邊看痕跡的變化。';
+      if (!S.engraving) return '已停止雕刻，痕跡留在材料上。按下面的按鈕記下這個位置。';
+      if (d > CFG.near) return '還在離焦（示範：' + signed(d) + ' mm）。先切 <strong>1 mm</strong> 大格移動，接近了再換小格。';
+      if (d > CFG.hit) return '快到了。切 <strong>0.1</strong> 或 <strong>0.01 mm</strong>，一格一格微調，看痕跡會不會再亮一點。';
+      return '<strong>就是這裡。</strong>痕跡最亮、最清楚的位置就是落焦，按下面的按鈕停止雕刻。';
+    }
+    if (S.step === 2) {
+      const d = S.z0 === null ? 0 : Math.abs(S.z0 - CFG.focal);
+      const warn = d > CFG.near
+        ? '<div class="warn">剛才停的位置離焦 ' + mm(d, 1) + ' mm（示範值），痕跡不是最亮的。可以按「← 重新對焦」再試一次。</div>'
+        : '';
+      return '落焦那一刻的焦平面，就是振鏡出廠設計的 <strong>Z0（中立位置）</strong>。之後的 Z0 尺寸校正、多層校正，都以它為基準。' + warn;
+    }
+    return '拿尺或高度規，從 <strong>加工平台面</strong> 量到 <strong>振鏡量測基準</strong>。量到多少就填多少——量到 240 填 240，量到 248 填 248。';
+  }
+
+  // ── 畫面 ────────────────────────────────────────────────────
+  function render() {
+    const { d, q } = liveQ();
+
+    $('#panelStep').textContent = ({ 1: '01-1 測焦點', 2: '01-2 確認 Z0', 3: '01-3 填入焦距高度' })[S.step];
+    $('#panelTask').textContent = ({ 1: '任務：讓中心點對到最亮', 2: '任務：確認焦平面', 3: '任務：量測並填入' })[S.step];
+
+    if (S.step === 1) {
+      $('#roMain').textContent = mm(S.z) + ' mm';
+      $('#roSub').textContent = S.markQ === null ? '加工平台高度' : '離焦 ' + signed(d) + ' mm';
+    } else {
+      $('#roMain').textContent = 'Z0 ＝ ' + mm(S.z0 === null ? CFG.focal : S.z0) + ' mm';
+      $('#roSub').textContent = S.step === 2 ? '就是你剛對到的位置' : '中立位置（已鎖定）';
+    }
+
+    // 控制區：每一步只出現那一步要用的
+    $('#zBlock').classList.toggle('hidden', S.step !== 1);
+    $('#lockBlock').classList.toggle('hidden', S.step !== 2);
+    $('#focalBlock').classList.toggle('hidden', S.step !== 3);
+
+    const sl = $('#zslider');
+    if (+sl.value !== S.z) sl.value = S.z;
+    $('#zOut').innerHTML = mm(S.z) + '<em>mm</em>';
+    $$('#steps button').forEach((b, i) => b.setAttribute('aria-pressed', i === S.jogIdx ? 'true' : 'false'));
+    $('#lockVal').textContent = mm(S.z0 === null ? CFG.focal : S.z0) + ' mm';
+    $('#zref').textContent = '軟體 Z 讀值 ' + mm(S.z0 === null ? CFG.focal : S.z0) + ' mm';
+
+    // 對焦指示
+    const shown = S.markQ === null ? null : (S.engraving ? q : S.markQ);
+    $('#qbar').style.width = (shown === null ? 0 : Math.round(shown * 100)) + '%';
+    $('#qval').textContent = shown === null ? '—' : Math.round(shown * 100) + '%';
+    $('#matNote').innerHTML = S.markQ === null
+      ? '中心點試刻區。<strong>黑紙或金屬片</strong>上看痕跡亮不亮，是判斷落焦的依據。'
+      : (S.engraving ? '試刻中——<strong>痕跡越亮、越清楚，就越接近落焦。</strong>'
+                     : '<strong>已停止試刻</strong>，痕跡留在材料上。');
+
+    // 底部
+    $('#hint').innerHTML = hintFor();
+    const cta = $('#cta'), cta2 = $('#cta2');
+    cta.classList.remove('stop');
+    cta2.classList.add('hidden');
+    if (S.step === 1) {
+      if (S.engraving) { cta.textContent = '■ 停止雕刻，記下這個位置'; cta.classList.add('stop'); }
+      else { cta.textContent = '▶ 開始連續雕刻'; }
+    } else if (S.step === 2) {
+      cta.textContent = '用這個 Z0 繼續 →';
+      cta2.classList.remove('hidden');
+      cta2.textContent = '← 重新對焦';
+    } else {
+      cta.textContent = S.done ? '重新示範一次' : '寫入並完成 STEP 01';
+    }
+
+    paintRail();
+    drawScene();
+    needMark = true;
+  }
+
+  // ── 動作 ────────────────────────────────────────────────────
+  function jog(dir) {
+    if (S.step !== 1) return;
+    S.z = clamp(+(S.z + dir * CFG.jog[S.jogIdx]).toFixed(2), CFG.zMin, CFG.zMax);
+    render();
+  }
+  // dir = +1 表示 Z 值變大（平台遠離振鏡），−1 表示 Z 值變小（平台靠近振鏡）
+  $('#zUp').onclick = () => jog(-1);
+  $('#zDown').onclick = () => jog(1);
+  $('#zslider').oninput = (e) => { S.z = +(+e.target.value).toFixed(2); render(); };
+
+  (function buildSteps() {
+    $('#steps').innerHTML = CFG.jog.map((v, i) =>
+      '<button data-i="' + i + '"><small>每次</small>' + v + '</button>').join('');
+    $('#steps').addEventListener('click', (e) => {
+      const b = e.target.closest('button[data-i]');
+      if (!b) return;
+      S.jogIdx = +b.dataset.i;
+      render();
+    });
+  })();
+
+  function stopEngrave() {
+    S.engraving = false;
+    const { d, q } = liveQ();
+    S.markD = d; S.markQ = q;   // 痕跡定住（真實世界的痕跡是永久的）
+    S.z0 = S.z;                 // 落焦位置就是 Z0
+    gotoStep(2);
+  }
+
+  $('#cta').onclick = () => {
+    if (S.step === 1) {
+      if (S.engraving) { stopEngrave(); return; }
+      S.engraving = true; S.everEngraved = true;
+      const { d, q } = liveQ();
+      S.markD = d; S.markQ = q;
+      render();
+      return;
+    }
+    if (S.step === 2) { gotoStep(3); return; }
+    if (S.done) { resetAll(); return; }
+    S.measured = +$('#focalInput').value || 0;
+    S.done = true;
+    showDone();
+  };
+  $('#cta2').onclick = () => {
+    S.done = false; S.everEngraved = false; S.markQ = null; S.markD = 0;
+    S.z0 = null; S.z = CFG.zStart; S.engraving = false;
+    gotoStep(1);
+  };
+
+  // 量測輸入
+  const fin = $('#focalInput');
+  const bump = (dv) => { fin.value = Math.max(0, (+fin.value || 0) + dv).toFixed(1); };
+  $('#fMinus').onclick = () => bump(-1);
+  $('#fPlus').onclick = () => bump(1);
+  $('#fchips').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-v]');
+    if (!b) return;
+    fin.value = (+b.dataset.v).toFixed(1);
+    $$('#fchips button').forEach((x) => x.classList.toggle('on', x === b));
+  });
+
+  function showDone() {
+    const z0 = S.z0 === null ? CFG.focal : S.z0;
+    $('#sumZ0').textContent = mm(z0) + ' mm';
+    $('#sumFocal').textContent = mm(S.measured, 1) + ' mm';
+    $('#sumTips').innerHTML =
+      '軟體 Z 讀值 ' + mm(z0) + ' mm／實測 ' + mm(S.measured, 1) + ' mm——兩個數字本來就不一定會相同，軟體只是拿實測值套進各功能。' +
+      '重點是<b>從頭到尾用同一種量法</b>；這個值之後會被 Z0 尺寸校正與多層校正沿用。';
+    $('#doneVeil').hidden = false;
+  }
+  $('#doneNext').onclick = resetAll;
+  function resetAll() {
+    $('#doneVeil').hidden = true;
+    S.step = 1; S.z = CFG.zStart; S.engraving = false; S.everEngraved = false;
+    S.z0 = null; S.measured = null; S.markQ = null; S.markD = 0; S.done = false;
+    render();
+  }
+
+  // 為什麼
+  const openWhy = () => { $('#whySheet').hidden = false; $('#whySheet').scrollTop = 0; };
+  $('#whyBtn').onclick = openWhy;
+  $('#whyClose').onclick = () => { $('#whySheet').hidden = true; };
+  $('#startWhy').onclick = openWhy;
+
+  // 起始頁與審稿用的 hash 跳段
+  $('#startGo').onclick = () => { $('#startVeil').hidden = true; };
+  function applyHash() {
+    const h = (location.hash || '').replace('#', '');
+    if (!h || h === 'start') return;
+    $('#startVeil').hidden = true;
+    if (h === 'why') { openWhy(); return; }
+    if (h === 'step2' || h === 'step3' || h === 'done') {
+      S.markD = 0; S.markQ = 1; S.everEngraved = true; S.z = CFG.focal; S.z0 = CFG.focal;
+      if (h === 'done') { S.step = 3; S.measured = 240; S.done = true; fin.value = '240.0'; render(); showDone(); return; }
+      S.step = h === 'step2' ? 2 : 3;
+    }
+    render();
+  }
+
+  // ── 尺寸與動畫 ──────────────────────────────────────────────
+  function fitHeight() {
+    const vv = window.visualViewport;
+    document.documentElement.style.setProperty('--app-h', Math.round((vv && vv.height) || window.innerHeight) + 'px');
+  }
+  window.addEventListener('resize', () => { fitHeight(); render(); });
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', fitHeight);
+
+  let last = 0;
+  function loop(t) {
+    if (S.engraving) {
+      const { d, q } = liveQ();
+      S.markD = d; S.markQ = q;
+      $('#qbar').style.width = Math.round(q * 100) + '%';
+      $('#qval').textContent = Math.round(q * 100) + '%';
+      $('#roSub').textContent = '離焦 ' + signed(d) + ' mm';
+      const want = hintFor();
+      if ($('#hint').innerHTML !== want) $('#hint').innerHTML = want;
+      needMark = true;
+    }
+    if (needMark && t - last > 33) { last = t; needMark = false; drawMark(t); }
+    requestAnimationFrame(loop);
+  }
+
+  // ── 啟動 ────────────────────────────────────────────────────
+  buildRail();
+  fitHeight();
+  render();
+  applyHash();
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
