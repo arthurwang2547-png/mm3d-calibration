@@ -119,12 +119,32 @@ button:disabled{opacity:.45;cursor:default}
 .vpop .vh2{display:flex;justify-content:space-between;font-size:9px;color:#a4b4bf}
 
 /* ── 連續雕刻時彈出的黑紙試刻子畫面 ────────────────────── */
-.inset{position:absolute;z-index:6;left:6%;top:10%;width:33%;background:#12161a;border:1px solid #3c5a70;border-radius:8px;padding:5px;box-shadow:0 8px 20px #0006;line-height:0}
+.inset{position:absolute;z-index:6;left:61%;top:33%;width:31%;background:#12161a;border:1px solid #3c5a70;border-radius:8px;padding:5px;box-shadow:0 8px 20px #0006;line-height:0}
 .inset[hidden]{display:none!important}
 .inset canvas{display:block;width:100%;height:auto;border-radius:5px}
 .inset small{display:block;font-size:8.5px;line-height:12px;color:#cfe0ea;text-align:center;margin-top:3px;letter-spacing:.2px}
 
-/* 微調單位：教練到這一步時加脈動，讓人知道要點它 */
+/* ── 01-1 的滾輪滑鼠（畫面左側）：上下拖＝滾輪，藍色拉桿跟著跑 ── */
+.mouse{position:absolute;z-index:6;left:3%;top:29%;width:23%;text-align:center;cursor:ns-resize;touch-action:none;user-select:none;-webkit-user-select:none}
+.mouse svg{width:100%;height:auto;display:block;filter:drop-shadow(0 4px 10px #00000038)}
+.mouse small{display:block;font-size:12px;line-height:16px;color:#33556b;background:#ffffffdd;border-radius:8px;padding:2px 3px;margin-top:3px;white-space:nowrap}
+.mouse.act svg{filter:drop-shadow(0 0 0 2.5px #ffab1f) drop-shadow(0 4px 10px #00000038)}
+.mouse.act small{background:#ffab1f;color:#3a2400}
+/* 藍色拉桿改成被動指示，不再讓使用者直接拖（唯一入口是滑鼠） */
+.ov-hit{pointer-events:none;cursor:default}
+.ov-hit i{transition:margin-left .06s linear}
+
+/* 01-3 放大光路圖，強調「拿尺量這一段」 */
+.diagram.big{height:min(36vh,280px)}
+
+/* 底部按鈕隱藏時不要留空白 */
+.cta.hidden{display:none!important}
+
+/* 對到焦點時，「連續雕刻」閃一下叫使用者按它 */
+.ov-eng.ready{animation:engReady 1s ease-in-out infinite}
+@keyframes engReady{0%,100%{box-shadow:0 0 0 2px #0db8a3,0 0 0 4px #0db8a300}50%{box-shadow:0 0 0 3px #0db8a3,0 0 0 11px #0db8a355}}
+
+/* 微調單位：這一步時脈動，讓人知道要點它 */
 .ov-unit.tap{animation:utap 1.35s ease-out infinite}
 @keyframes utap{0%,100%{box-shadow:0 0 0 1.5px #1674d6,0 0 0 0 #ffab1f00}45%{box-shadow:0 0 0 2px #ffab1f,0 0 0 9px #ffab1f22}}
 
@@ -349,6 +369,17 @@ button:disabled{opacity:.45;cursor:default}
         <text id="dDimText" x="50" y="102" font-size="11.5" font-weight="700" fill="#196f84" text-anchor="middle" transform="rotate(-90 50 102)">—</text>
         <text x="18" y="99" font-size="8.5" fill="#7c95a5">焦距</text>
         <text x="18" y="109" font-size="8.5" fill="#7c95a5">高度</text>
+        <!-- 01-3：拿一支尺，量振鏡下方到台面這一段 -->
+        <g id="dRuler" opacity="0">
+          <rect x="62" y="72" width="12" height="60" rx="1.5" fill="#f7dda4" stroke="#c69a3c" stroke-width="1"/>
+          <g stroke="#a8802f" stroke-width="1">
+            <line x1="62" y1="78" x2="74" y2="78"/><line x1="62" y1="90" x2="74" y2="90"/>
+            <line x1="62" y1="102" x2="74" y2="102"/><line x1="62" y1="114" x2="74" y2="114"/>
+            <line x1="62" y1="126" x2="74" y2="126"/>
+          </g>
+          <text x="80" y="98" font-size="10" font-weight="700" fill="#8a5a00">拿尺量這一段</text>
+          <text x="80" y="110" font-size="9" fill="#a8802f">振鏡下方 → 台面</text>
+        </g>
         <!-- 加工平台（固定）＋ 材料 -->
         <rect x="120" y="128" width="100" height="4" fill="#15171a"/>
         <rect x="106" y="132" width="128" height="9" rx="2" fill="url(#gPlat)" stroke="#9db3c4" stroke-width="1"/>
@@ -376,6 +407,15 @@ button:disabled{opacity:.45;cursor:default}
           <div class="ov ov-hit" id="ovHit" style="left:11.5%;top:84.3%;width:28.5%;height:5.2%"><i></i></div>
           <div class="ov ov-unit" id="ovUnit" style="left:47.2%;top:90.6%;width:6.4%;height:3.8%">1</div>
           <div class="ov ov-eng" id="ovEng" style="left:86.2%;top:21.2%;width:11.2%;height:6.2%"></div>
+          <!-- 唯一入口：左邊的滑鼠滾輪 -->
+          <div class="mouse" id="mouse" role="slider" aria-label="上下拖或滾輪，調整 Z 數值" tabindex="0">
+            <svg viewBox="0 0 60 96" aria-hidden="true">
+              <rect x="5" y="2" width="50" height="92" rx="25" fill="#ffffff" stroke="#9fb4c4" stroke-width="2.5"/>
+              <line x1="30" y1="3" x2="30" y2="36" stroke="#cbd9e4" stroke-width="2.5"/>
+              <g id="mwheel"><rect x="23" y="13" width="14" height="22" rx="7" fill="#e6eef5" stroke="#7f97a8" stroke-width="1.8"/><line x1="26" y1="20" x2="34" y2="20" stroke="#5d7d8e" stroke-width="1.8"/></g>
+            </svg>
+            <small id="mlabel">上下拖</small>
+          </div>
           <!-- 按下連續雕刻後才出現：黑紙試刻子畫面 -->
           <div class="inset" id="matInset" hidden>
             <canvas id="mark" width="240" height="168"></canvas>
@@ -390,7 +430,11 @@ button:disabled{opacity:.45;cursor:default}
           <button id="hBtn">調整</button>
         </div>
         <div class="callout info" id="hNote" style="display:none">這個值會被 <b>2D 尺寸校正</b>與<b>多層校正</b>沿用。量法一旦決定就固定——量到 240 就一直用 240，不要中途換工具。</div>
-        <div class="callout" id="z0Note" style="display:none;background:#f1faf8;border-color:#cfeae5;color:#0a7d74"><b>Z0 中立位置已鎖定：<span id="z0Num">—</span></b><br>之後每一層的聚焦軸校正，都是從這個基準往上算。</div>
+        <div class="callout" id="z0Note" style="display:none;background:#f1faf8;border-color:#cfeae5;color:#0a7d74">
+          <b>Z0 中立位置已鎖定：<span id="z0Num">—</span></b>
+          <div id="z0Q" style="font-weight:700;margin-top:5px"></div>
+          <div style="margin-top:5px">這個值以你<strong>剛才實際對到的位置</strong>為準，不是軟體給的預設值。之後每一層的聚焦軸校正，都從這個基準往上算。</div>
+        </div>
       </div>
     </div>
   </section>
@@ -504,7 +548,7 @@ button:disabled{opacity:.45;cursor:default}
   const S = {
     step: 0, z: CFG.zStart, engraving: false, everEngraved: false,
     z0: null, measured: null, markQ: null, markD: 0, done: false,
-    coach: 0, unit: 1,
+    coach: 0, unit: 100, unitTouched: false, measuredDone: false,
   };
 
   const $ = (s) => document.querySelector(s);
@@ -515,6 +559,13 @@ button:disabled{opacity:.45;cursor:default}
   const signedPx = (d) => (d < 1 ? '0' : (S.z > CFG.z0px ? '+' : '−') + Math.round(d));
   /* 焦距高度是使用者量到之後輸入的數值（預設對齊截圖上的 244.000） */
   const focalH = () => (S.measured === null ? 244.0 : S.measured);
+  /* 01-1 的四個階段：0 設微調單位 → 1 開始雕刻 → 2 滾輪找焦 → 3 停下 */
+  const phase4 = () => {
+    if (!S.unitTouched) return 0;
+    if (!S.engraving && !S.everEngraved) return 1;
+    if (S.engraving) return liveQ().q >= 0.88 ? 3 : 2;
+    return 3;
+  };
 
   /* ── 教練框腳本（位置＝圖片的百分比）── */
   const COACH = {
@@ -534,10 +585,10 @@ button:disabled{opacity:.45;cursor:default}
       { box: [14.0, 71.0, 19, 8], t: '<b>步驟 4 輸入校正值</b>：軟體算好之後填回去。' },
     ],
     4: [
-      { box: [45.5, 89.0, 9.5, 6.6], t: '點一下 <b>「微調單位」</b>——拉桿會直接出現在這個欄位旁邊，拉到要的格數放開就載入。它決定 Z 每動一格是多少。' },
+      { box: [45.5, 89.0, 9.5, 6.6], t: '先點 <b>「微調單位」</b>。它決定滾一格跳多少：<b>粗調先選 100</b>，接近焦點再改 10。' },
       { box: [84.5, 20.4, 13.5, 7.6], t: '按一下 <b>「連續雕刻」</b>，讓雷射開始打中心點。右邊會跳出黑紙上的試刻痕跡。' },
-      { box: [9.5, 82.6, 32.5, 8.4], t: '接著<b>拖左邊這條「Z 數值」滑桿</b>。一邊拖，一邊看右邊黑紙那塊由暗變亮。' },
-      { box: [84.5, 20.4, 13.5, 7.6], t: '對到最亮就<b>再按一次「連續雕刻」</b>停下來。停下來的焦平面就是 Z0。' },
+      { box: [3.0, 37.0, 28, 42], t: '在左邊的滑鼠上<b>上下拖</b>（或滾滾輪）。往上＝數值變大＝藍色拉桿往右，焦點會往下走。' },
+      { box: [84.5, 20.4, 13.5, 7.6], t: '焦點貼到台面就<b>再按一次「連續雕刻」</b>停下來。那個 Z 數值就是 Z0。' },
     ],
   };
 
@@ -558,6 +609,7 @@ button:disabled{opacity:.45;cursor:default}
     S.step = clamp(i, 0, STEPS.length - 1);
     S.coach = 0;
     if (S.step < FOCUS_FIRST) S.engraving = false;
+    if (S.step === 6) S.measuredDone = false;
     render();
   }
 
@@ -671,6 +723,7 @@ button:disabled{opacity:.45;cursor:default}
     /* 變的是「Z 數值」這一欄（畫面左下），不是焦距高度 */
     $('#ovZ').textContent = (S.z > 0 ? '+' : '') + Math.round(S.z);
     $('#ovUnit').textContent = S.unit;
+    $('#mlabel').textContent = '一格 ' + S.unit;
     const pct = (S.z - CFG.zMin) / (CFG.zMax - CFG.zMin);
     $('#ovHit').firstElementChild.style.marginLeft = (pct * 100) + '%';
     const shown = S.markQ === null ? 0 : (S.engraving ? q : S.markQ);
@@ -691,28 +744,54 @@ button:disabled{opacity:.45;cursor:default}
   }
 
   function bindShot() {
-    const hit = $('#ovHit');
-    let dragging = false;
-    const setFromX = (clientX) => {
-      const r = hit.getBoundingClientRect();
-      const p = clamp((clientX - r.left) / r.width, 0, 1);
-      S.z = +(CFG.zMin + p * (CFG.zMax - CFG.zMin)).toFixed(2);
-      if (S.engraving) { const l = liveQ(); S.markD = l.d; S.markQ = l.q; }
-      paintLive();
+    /* 唯一入口：左側滑鼠。上下拖＝滾輪，一格＝微調單位那麼多 */
+    const mouse = $('#mouse');
+    let mDrag = false, mAcc = 0, mLastY = 0, wTimer = 0, wOff = 0;
+    const spin = (dir) => {
+      wOff = clamp(wOff + dir * 3, -7, 7);
+      $('#mwheel').setAttribute('transform', 'translate(0 ' + wOff + ')');
+      clearTimeout(wTimer);
+      wTimer = setTimeout(() => { wOff = 0; $('#mwheel').setAttribute('transform', 'translate(0 0)'); }, 200);
     };
-    hit.addEventListener('pointerdown', (e) => { dragging = true; try { hit.setPointerCapture(e.pointerId); } catch (_) {} setFromX(e.clientX); });
-    hit.addEventListener('pointermove', (e) => { if (dragging) setFromX(e.clientX); });
-    hit.addEventListener('pointerup', (e) => { dragging = false; try { hit.releasePointerCapture(e.pointerId); } catch (_) {} });
-    hit.addEventListener('pointercancel', () => { dragging = false; });
+    const notch = (dir) => {
+      const u = S.unit;
+      S.z = clamp(Math.round(S.z / u) * u + dir * u, CFG.zMin, CFG.zMax);
+      S.unitTouched = true;
+      if (S.engraving) { const l = liveQ(); S.markD = l.d; S.markQ = l.q; }
+      spin(dir);
+      render();
+    };
+    mouse.addEventListener('pointerdown', (ev) => {
+      mDrag = true; mLastY = ev.clientY; mAcc = 0;
+      mouse.classList.add('act');
+      try { mouse.setPointerCapture(ev.pointerId); } catch (_) {}
+      ev.preventDefault();
+    });
+    mouse.addEventListener('pointermove', (ev) => {
+      if (!mDrag) return;
+      mAcc += (mLastY - ev.clientY);      /* 往上拖 = 正值 = 往右 = 數值變大 */
+      mLastY = ev.clientY;
+      let guard = 0;
+      while (Math.abs(mAcc) >= 16 && guard++ < 10) {
+        const dir = mAcc > 0 ? 1 : -1;
+        mAcc -= dir * 16;
+        notch(dir);
+      }
+    });
+    const endDrag = () => { mDrag = false; mouse.classList.remove('act'); };
+    mouse.addEventListener('pointerup', endDrag);
+    mouse.addEventListener('pointercancel', endDrag);
+    mouse.addEventListener('wheel', (ev) => { ev.preventDefault(); notch(ev.deltaY < 0 ? 1 : -1); }, { passive: false });
 
     $('#ovEng').addEventListener('click', () => toggleEngrave());
     $('#ovUnit').addEventListener('click', () => openValueSlider({
-      anchor: $('#ovUnit'), label: '微調單位（Z 每動一格）', min: 1, max: 100, step: 1, value: S.unit,
-      onCommit: (v) => { S.unit = v; paintLive(); },
+      anchor: $('#ovUnit'), label: '微調單位（滾一格 = 多少像素）', min: 1, max: 100, step: 1, value: S.unit,
+      onCommit: (v) => { S.unit = v; S.unitTouched = true; render(); },
     }));
     $('#hBtn').addEventListener('click', () => openValueSlider({
-      anchor: $('#hBtn'), label: '焦距高度（實測）', min: 200, max: 300, step: 0.5, value: S.measured === null ? 240 : S.measured,
-      onCommit: (v) => { S.measured = v; $('#hVal').textContent = mm(v, 1) + ' mm'; },
+      anchor: $('#hBtn'), label: '焦距高度（量到多少填多少）', min: 200, max: 300, step: 0.5,
+      value: S.measured === null ? 244 : S.measured,
+      onCommit: (v) => { S.measured = v; render(); },
     }));
   }
 
@@ -752,13 +831,12 @@ button:disabled{opacity:.45;cursor:default}
     if (S.step === 2) return '這一頁<strong>選了就固定</strong>，之後要改只能重新新增鏡頭。先確認是格點法再按確認。';
     if (S.step === 3) return '照左邊的步驟 1～4 走。K 先給 0.5，後面量完全幅面再回來確認。';
     if (S.step === 4) {
-      if (S.coach < (COACH[4] || []).length - 1) return '照橘框走：<strong>微調單位 → 開始連續雕刻 → 拖 Z 滑桿 → 再按一次停下</strong>。';
-      const d = liveQ().d;
-      if (!S.everEngraved) return '先看「微調單位」，然後<strong>拖畫面左邊的 Z 數值滑桿</strong>，讓焦點上下移動。';
-      if (!S.engraving) return '已停止雕刻。按下面的按鈕記下這個位置。';
-      if (d > CFG.tol * 0.6) return '還在離焦（示範：' + signedPx(d) + ' px）。<strong>慢慢拖滑桿</strong>，看焦點會不會貼到平台面。';
-      if (d > CFG.hit) return '<strong>快到了。</strong>小幅度拖，別跳過頭。';
-      return '<strong>就是這裡。</strong>焦點貼在加工平面上的那個 Z 數值就是落焦位置，按畫面右邊的「連續雕刻」停下來。';
+      const ph = phase4(), q = liveQ().q;
+      if (ph === 0) return '先在畫面上點一下 <strong>橘框「微調單位」</strong>。粗調先用 100，接近了再改 10。';
+      if (ph === 1) return '按畫面上的 <strong>「連續雕刻」</strong>，讓雷射開始打中心點。';
+      if (ph === 3) return '<strong>貼上了。</strong>按畫面上同一顆「連續雕刻」停下來，記下這個 Z 數值。';
+      if (q > 0.55) return '<strong>很近了。</strong>把微調單位改成 10 再滾，比較好停。';
+      return '在左邊的滑鼠上<strong>上下拖</strong>（或滾滾輪），藍色拉桿會跟著跑。';
     }
     if (S.step === 5) {
       const d = S.z0 === null ? 0 : Math.abs(S.z0 - CFG.z0px);
@@ -781,16 +859,29 @@ button:disabled{opacity:.45;cursor:default}
       $('#optTask').textContent = ({ 4: '任務：讓中心點對到最亮', 5: '任務：確認焦平面', 6: '任務：填入焦距高度' })[S.step];
       const live = S.step === 4;
       $('#ovHit').style.display = live ? '' : 'none';
+      $('#mouse').style.display = live ? '' : 'none';
       $('#ovUnit').style.display = live ? '' : 'none';
       $('#ovEng').style.display = live ? '' : 'none';
       $('#tip4').style.display = live ? '' : 'none';
       $('#sp4').style.display = live ? '' : 'none';
-      $('#hrow').style.display = S.step === 6 ? 'flex' : 'none';
-      $('#hNote').style.display = S.step === 6 ? '' : 'none';
+      $('#hrow').style.display = (S.step === 6 && S.measuredDone) ? 'flex' : 'none';
+      $('#hNote').style.display = (S.step === 6 && S.measuredDone) ? '' : 'none';
       $('#z0Note').style.display = S.step === 5 ? '' : 'none';
-      if (S.step === 5) $('#z0Num').textContent = ((S.z0 === null ? CFG.z0px : S.z0) > 0 ? '+' : '') + Math.round(S.z0 === null ? CFG.z0px : S.z0) + ' px';
+      /* 01-3：放大光路圖＋尺 */
+      $('#dd').closest('.diagram').classList.toggle('big', S.step === 6);
+      $('#dRuler').setAttribute('opacity', S.step === 6 ? '1' : '0');
+      if (S.step === 5) {
+        const z0v = S.z0 === null ? CFG.z0px : S.z0;
+        const q = Math.round(clamp(1 - Math.abs(z0v - CFG.z0px) / CFG.tol, 0, 1) * 100);
+        $('#z0Num').textContent = (z0v > 0 ? '+' : '') + Math.round(z0v) + ' px';
+        $('#z0Q').textContent = '貼合度 ' + q + '%' + (q >= 88 ? '　✓ 有貼上' : '　✗ 沒貼上，建議重做');
+        $('#z0Q').style.color = q >= 88 ? '#0a7d74' : '#a8412f';
+      }
       if (S.step === 6) $('#hVal').textContent = S.measured === null ? '—' : mm(S.measured, 1) + ' mm';
-      $('#ovUnit').classList.toggle('tap', live && S.coach === 0);
+      /* 01-1 的教練框跟著實際狀態跑，不是跟著按鈕跑 */
+      if (live) S.coach = [0, 1, 2, 3][phase4()];
+      $('#ovUnit').classList.toggle('tap', live && phase4() === 0);
+      $('#ovEng').classList.toggle('ready', live && S.engraving && liveQ().q >= 0.88);
       paintLive();
       if (live) applyCoach();
     } else {
@@ -802,23 +893,26 @@ button:disabled{opacity:.45;cursor:default}
     cta.classList.remove('stop', 'coach');
     cta2.classList.add('hidden');
 
+    /* 單一入口：畫面上有事要按的步驟，底部就不出現按鈕 */
+    let showCta = true, label = '';
     const list = COACH[S.step];
-    if (list && S.coach < list.length - 1) {
-      cta.classList.add('coach');
-      cta.textContent = '下一步 ' + (S.coach + 2) + ' / ' + list.length + ' →';
-    } else if (S.step === 4) {
-      if (S.engraving) { cta.textContent = '■ 停止雕刻，記下這個位置'; cta.classList.add('stop'); }
-      else if (S.everEngraved) { cta.textContent = '記下這個位置 →'; }
-      else { cta.textContent = '開始連續雕刻'; }
+    if (S.step === 4) {
+      showCta = false;
     } else if (S.step === 5) {
-      cta.textContent = '用這個 Z0 繼續 →';
+      label = '用這個 Z0 繼續 →';
       cta2.classList.remove('hidden'); cta2.textContent = '← 重新對焦';
     } else if (S.step === 6) {
-      cta.textContent = S.done ? '重新示範一次' : '寫入並完成這一段';
+      if (!S.measuredDone) { label = '我量好了，去填數值 →'; }
+      else if (S.measured === null) { showCta = false; }
+      else { label = S.done ? '重新示範一次' : '寫入並完成這一段'; }
+    } else if (list && S.coach < list.length - 1) {
+      cta.classList.add('coach');
+      label = '下一步 ' + (S.coach + 2) + ' / ' + list.length + ' →';
     } else {
-      cta.textContent = S.step === 0 ? '知道了，看下一步 →' : '下一步 →';
+      label = S.step === 0 ? '知道了，看下一步 →' : '下一步 →';
     }
-
+    cta.textContent = label;
+    cta.classList.toggle('hidden', !showCta);
     paintProg();
   }
 
@@ -826,7 +920,7 @@ button:disabled{opacity:.45;cursor:default}
   function toggleEngrave() {
     if (S.step !== 4) return;
     if (S.engraving) { stopEngrave(); return; }
-    S.engraving = true; S.everEngraved = true;
+    S.engraving = true; S.everEngraved = true; S.unitTouched = true;
     const { d, q } = liveQ(); S.markD = d; S.markQ = q;
     render();
   }
@@ -839,16 +933,12 @@ button:disabled{opacity:.45;cursor:default}
 
   $('#cta').onclick = () => {
     const list = COACH[S.step];
-    if (list && S.coach < list.length - 1) { S.coach += 1; render(); return; }
-    if (S.step === 4) {
-      if (S.engraving) { stopEngrave(); return; }
-      if (!S.everEngraved) { S.everEngraved = true; S.engraving = true; const l = liveQ(); S.markD = l.d; S.markQ = l.q; render(); return; }
-      S.z0 = S.z; go(5); return;
-    }
+    if (S.step !== 4 && S.step !== 6 && list && S.coach < list.length - 1) { S.coach += 1; render(); return; }
     if (S.step === 5) { go(6); return; }
     if (S.step === 6) {
+      if (!S.measuredDone) { S.measuredDone = true; render(); return; }
+      if (S.measured === null) return;
       if (S.done) { resetAll(); return; }
-      if (S.measured === null) S.measured = 245;
       S.done = true; showDone(); return;
     }
     go(S.step + 1);
@@ -877,7 +967,8 @@ button:disabled{opacity:.45;cursor:default}
   function resetAll() {
     $('#doneVeil').hidden = true;
     S.step = 0; S.z = CFG.zStart; S.engraving = false; S.everEngraved = false;
-    S.z0 = null; S.measured = null; S.markQ = null; S.markD = 0; S.done = false; S.coach = 0; S.unit = 1;
+    S.z0 = null; S.measured = null; S.markQ = null; S.markD = 0; S.done = false; S.coach = 0;
+    S.unit = 100; S.unitTouched = false; S.measuredDone = false;
     render();
   }
 
@@ -893,7 +984,7 @@ button:disabled{opacity:.45;cursor:default}
     $('#startVeil').hidden = true;
     const i = +m[1];
     if (i >= 5) { S.markD = 0; S.markQ = 1; S.everEngraved = true; S.z = CFG.z0px; S.z0 = CFG.z0px; S.measured = 240; }
-    if (i === 4) { S.z = CFG.zStart; S.markQ = null; S.markD = 0; S.z0 = null; }
+    if (i === 4) { S.z = CFG.zStart; S.markQ = null; S.markD = 0; S.z0 = null; S.unitTouched = false; }
     go(i);
   }
 
