@@ -199,6 +199,56 @@ button:disabled{opacity:.45;cursor:default}
   .diagram{height:min(34vh,150px)}
   .hint{min-height:0}
 }
+
+/* ── 統一字級：整套只有 12 / 14 / 16 / 18 四級，最小 12px ──
+   之前為了塞資訊用了 8.5~12.5 七八種尺寸，讀起來會忽大忽小。 */
+.v2-header h1{font-size:15px}
+.prog span{font-size:12px}
+.prog i{height:5px}
+.panelhead{font-size:12px;height:26px}
+.panelhead b{font-size:12px}
+.panelhead .task{font-size:12px;padding:2px 8px}
+.panelhead+.panelbody{font-size:14px}
+.mapintro{font-size:14px;line-height:1.65}
+.mrow .t{font-size:15px}
+.mrow .d{font-size:12.5px;line-height:1.45}
+.mrow .n{width:22px;height:22px;font-size:12px}
+.mrow .more{font-size:13px;line-height:1.7;padding-left:41px}
+.mrow .more em{font-size:12.5px;line-height:1.65}
+.mhere{font-size:12px;padding:2px 8px}
+.callout{font-size:13px;line-height:1.65}
+.tip{padding:11px 12px}
+.tip p{font-size:14px;line-height:1.6}
+.tip .n{font-size:12px;padding:3px 8px}
+.tip .step{font-size:12px}
+.hint{font-size:14px;line-height:1.6;min-height:44px}
+.dread{font-size:14px;height:28px}
+.dread small{font-size:12px}
+.qm span,.qm b{font-size:12px}
+.matnote{font-size:12px;line-height:1.5}
+.matnote.tiny{font-size:11px}
+.heightrow .lb{font-size:13px}
+.heightrow .lb em{font-size:11.5px}
+.heightrow b{font-size:24px}
+.heightrow button{font-size:13px;height:38px}
+.ov-z{font-size:11px}
+.ov-unit{font-size:12px}
+.inset small{font-size:10.5px;line-height:13px}
+.vpop .vh{font-size:12.5px}
+.vpop .vh2{font-size:11px}
+.veil h2{font-size:24px}
+.veil .brandline{font-size:12px;letter-spacing:2.5px;color:#93a7b4;font-weight:700;margin-bottom:8px}
+.veil p{font-size:14px;line-height:1.7}
+.veil button.go{font-size:16px;height:54px}
+.veil small{font-size:11.5px}
+.sum .row{font-size:13.5px}
+.sum .tips{font-size:12.5px;line-height:1.65}
+.sheet h3{font-size:15px}
+.sheet p{font-size:13.5px;line-height:1.7}
+.sheet .kv div{font-size:13px}
+.cta{font-size:16px;height:52px}
+.cta2{font-size:13px;height:42px}
+
 </style>
 </head>
 <body>
@@ -278,30 +328,39 @@ button:disabled{opacity:.45;cursor:default}
           <linearGradient id="gPlat" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e6eef4"/><stop offset="1" stop-color="#b6c9d9"/></linearGradient>
           <pattern id="pBase" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="9" height="9" fill="#f4f8fb"/><line x1="0" y1="0" x2="0" y2="9" stroke="#e0e9f0" stroke-width="1.5"/></pattern>
         </defs>
-        <rect id="dBase" x="22" y="188" width="296" height="34" fill="url(#pBase)"/>
+        <rect id="dBase" x="22" y="141" width="296" height="99" fill="url(#pBase)"/>
         <rect x="96" y="14" width="148" height="58" rx="6" fill="url(#gGalvo)"/>
         <text x="108" y="32" font-size="10.5" fill="#dcecf5">振鏡</text>
         <path d="M156 40 L184 40 L170 52 Z" fill="#7fd8e8" opacity=".85"/>
         <ellipse cx="170" cy="62" rx="26" ry="5" fill="#eaf7f9" stroke="#0db8a3" stroke-width="1.5"/>
-        <text x="252" y="65" font-size="9" fill="#0a8b83">聚焦軸（中立）</text>
-        <polygon id="dBeam" fill="#ff8f2e" fill-opacity=".55"/>
-        <line id="dAxis" x1="170" y1="72" x2="170" y2="188" stroke="#ff8f2e" stroke-width="1" stroke-dasharray="3 3" opacity=".75"/>
+        <text x="252" y="65" font-size="9" fill="#0a8b83">聚焦軸</text>
+        <!-- 光路：從振鏡正中出發，收斂到焦點。焦點隨 Z 數值上下移動，平台不動。 -->
+        <polygon id="dBeam" fill="#ff8f2e" fill-opacity=".5"/>
+        <line id="dAxis" x1="170" y1="72" x2="170" y2="132" stroke="#ff8f2e" stroke-width="1" stroke-dasharray="3 3" opacity=".7"/>
+        <!-- 量測基準 -->
         <line x1="88" y1="72" x2="252" y2="72" stroke="#8aa3b3" stroke-width="1"/>
         <line x1="88" y1="68" x2="88" y2="76" stroke="#8aa3b3" stroke-width="1"/>
         <line x1="252" y1="68" x2="252" y2="76" stroke="#8aa3b3" stroke-width="1"/>
-        <text x="258" y="75" font-size="8.5" fill="#7c95a5">量測基準</text>
-        <line id="dDimLine" x1="46" y1="72" x2="46" y2="150" stroke="#5d7d8e" stroke-width="1"/>
-        <line x1="41" y1="72" x2="51" y2="72" stroke="#5d7d8e" stroke-width="1"/>
-        <line id="dDimT2" x1="41" y1="150" x2="51" y2="150" stroke="#5d7d8e" stroke-width="1"/>
-        <text id="dDimText" x="36" y="111" font-size="11.5" font-weight="700" fill="#196f84" text-anchor="middle" transform="rotate(-90 36 111)">—</text>
+        <text x="258" y="75" font-size="9" fill="#7c95a5">量測基準</text>
+        <!-- 焦距高度：振鏡基準 → 加工平面，固定距離，只有數字會變 -->
+        <line x1="60" y1="72" x2="60" y2="132" stroke="#5d7d8e" stroke-width="1"/>
+        <line x1="55" y1="72" x2="65" y2="72" stroke="#5d7d8e" stroke-width="1"/>
+        <line x1="55" y1="132" x2="65" y2="132" stroke="#5d7d8e" stroke-width="1"/>
+        <text id="dDimText" x="50" y="102" font-size="11.5" font-weight="700" fill="#196f84" text-anchor="middle" transform="rotate(-90 50 102)">—</text>
+        <text x="18" y="99" font-size="8.5" fill="#7c95a5">焦距</text>
+        <text x="18" y="109" font-size="8.5" fill="#7c95a5">高度</text>
+        <!-- 加工平台（固定）＋ 材料 -->
+        <rect x="120" y="128" width="100" height="4" fill="#15171a"/>
+        <rect x="106" y="132" width="128" height="9" rx="2" fill="url(#gPlat)" stroke="#9db3c4" stroke-width="1"/>
+        <text x="240" y="139" font-size="8.5" fill="#7c95a5">加工平台</text>
+        <!-- 材料表面的試刻亮點：大小與亮度隨離焦變化 -->
+        <ellipse id="dSpot" cx="170" cy="130" rx="3" ry="2.4" fill="#ffc46b" opacity=".3"/>
+        <!-- 焦平面：跟著焦點上下移動 -->
         <g id="dFocal" opacity="0">
-          <line id="dFocalLine" x1="70" y1="114" x2="270" y2="114" stroke="#0db8a3" stroke-width="1.3" stroke-dasharray="5 4"/>
-          <circle id="dFocalDot" cx="170" cy="114" r="2.6" fill="#0db8a3"/>
-          <text id="dFocalText" x="268" y="104" text-anchor="end" font-size="9" fill="#0a8b83" stroke="#f8fbfd" stroke-width="2.5" paint-order="stroke">焦平面 ＝ Z0</text>
+          <line id="dFocalLine" x1="72" y1="132" x2="272" y2="132" stroke="#0db8a3" stroke-width="1.3" stroke-dasharray="5 4"/>
+          <circle id="dFocalDot" cx="170" cy="132" r="2.8" fill="#0db8a3"/>
+          <text id="dFocalText" x="268" y="128" text-anchor="end" font-size="9" fill="#0a8b83" stroke="#f8fbfd" stroke-width="2.5" paint-order="stroke">焦平面</text>
         </g>
-        <rect id="dMat" x="120" y="146" width="100" height="3" fill="#15171a"/>
-        <rect id="dPlat" x="106" y="149" width="128" height="8" rx="2" fill="url(#gPlat)" stroke="#9db3c4" stroke-width="1"/>
-        <text id="dPlatLabel" x="240" y="156" font-size="8.5" fill="#7c95a5">加工平台</text>
       </svg>
       <div class="dread"><b id="roMain">—</b><small id="roSub"></small></div>
     </div>
@@ -313,7 +372,7 @@ button:disabled{opacity:.45;cursor:default}
           <img src="{{IMG_FOCAL}}" alt="校正檔：校正聚焦點（中立位置校正）">
           <span class="spot" id="sp4"></span>
           <div class="ov ov-glow" id="ovGlow" style="left:40.2%;top:38.2%;width:5.6%;height:5.4%"></div>
-          <div class="ov ov-z" id="ovZ" style="left:19%;top:77.9%;width:11%;height:4.3%">—</div>
+          <div class="ov ov-z" id="ovZ" style="left:11.3%;top:84.7%;width:10.2%;height:4.4%">—</div>
           <div class="ov ov-hit" id="ovHit" style="left:11.5%;top:84.3%;width:28.5%;height:5.2%"><i></i></div>
           <div class="ov ov-unit" id="ovUnit" style="left:47.2%;top:90.6%;width:6.4%;height:3.8%">1</div>
           <div class="ov ov-eng" id="ovEng" style="left:86.2%;top:21.2%;width:11.2%;height:6.2%"></div>
@@ -352,18 +411,14 @@ button:disabled{opacity:.45;cursor:default}
   <div class="vh2"><span id="vMin"></span><span>放開即載入</span><span id="vMax"></span></div>
 </div>
 
-<!-- 起始頁 -->
+<!-- 起始頁：一句話＋一顆按鈕就好，不要一開場就丟陌生名詞 -->
 <div class="veil" id="startVeil">
   <div class="card">
-    <h2>先從哪裡進去</h2>
-    <p>這一段帶你從「開軟體」走到「填完焦距高度」，全程用<b>實機畫面</b>一步一步帶。</p>
-    <div class="mini">
-      <div><i>1</i><span><b>進去、建檔</b>　選項 → 鏡頭管理員 → 新增鏡頭</span></div>
-      <div><i>2</i><span><b>校正法與 K 值</b>　選格點法，照步驟 1～4 做</span></div>
-      <div><i>3</i><span><b>中立位置</b>　拖 Z 拉桿找落焦 → 填焦距高度</span></div>
-    </div>
-    <button class="go" id="startGo">開始 ▶</button>
-    <small>版面示範 · 不需接機</small>
+    <div class="brandline">MM3D PLUS</div>
+    <h2>多層校正</h2>
+    <p>第一段：從打開軟體，到把中立位置校正完。<br>照著畫面一步一步點就好。</p>
+    <button class="go" id="startGo">開始</button>
+    <small>約 3 分鐘 · 不需接機</small>
   </div>
 </div>
 
@@ -372,8 +427,8 @@ button:disabled{opacity:.45;cursor:default}
   <div class="card">
     <h2>前置與中立位置完成</h2>
     <div class="sum">
-      <div class="row">Z0 中立位置（落焦高度）<b id="sumZ0">—</b></div>
-      <div class="row">焦距高度（實測填入）<b class="t" id="sumFocal">—</b></div>
+      <div class="row">Z0 中立位置（聚焦軸像素值）<b id="sumZ0">—</b></div>
+      <div class="row">焦距高度（量測後填入）<b class="t" id="sumFocal">—</b></div>
       <div class="tips" id="sumTips"></div>
     </div>
     <button class="go" id="doneNext" style="margin-top:14px">重新示範一次</button>
@@ -397,8 +452,8 @@ button:disabled{opacity:.45;cursor:default}
     </div>
     <div class="box">
       <h3>為什麼中立位置排在最前面</h3>
-      <p>焦距高度是<b>落焦那一刻</b>量到的距離。還沒落焦就要填一個數字，使用者會卡在第一步。</p>
-      <p>所以順序是：先拖 Z 讓中心點對到最亮 → 停下來的焦平面就是 Z0（中立位置）→ 再量、再填。</p>
+      <p>拖 Z 數值 → 焦點上下移動 → 貼到加工平面 → 那個 Z 數值就是 <b>Z0（中立位置）</b>。焦距高度是另一件事：它是你拿尺量出來的固定距離，輸入給軟體知道平面在哪。</p>
+      <p>兩者不要混在一起看：<b>Z0 是軟體裡的位置，焦距高度是量到的長度。</b></p>
     </div>
     <div class="box">
       <h3>為什麼填 240 或 248 都可以</h3>
@@ -407,11 +462,11 @@ button:disabled{opacity:.45;cursor:default}
     <div class="box">
       <h3>術語對照</h3>
       <div class="kv">
-        <div><dt>Z 數值</dt><dd>實機畫面上的滑桿，移動加工平台高度</dd></div>
-        <div><dt>微調單位</dt><dd>Z 每動一格代表多少（畫面預設 1）</dd></div>
-        <div><dt>聚焦軸</dt><dd>振鏡內的聚焦鏡片，用來微調焦距</dd></div>
-        <div><dt>Z0／中立位置</dt><dd>振鏡出廠設計的焦平面，所有校正的基準</dd></div>
-        <div><dt>焦距高度</dt><dd>落焦時，加工平台面到振鏡量測基準的距離</dd></div>
+        <div><dt>Z 數值</dt><dd>聚焦軸的像素值。拖它會讓<b>焦點上下移動</b>，加工平台不動</dd></div>
+        <div><dt>微調單位</dt><dd>Z 每動一格代表多少像素（畫面預設 1）</dd></div>
+        <div><dt>聚焦軸</dt><dd>振鏡內的聚焦鏡片，移動它就是移動焦點</dd></div>
+        <div><dt>Z0／中立位置</dt><dd>焦點剛好貼在加工平面時，聚焦軸的那個像素值</dd></div>
+        <div><dt>焦距高度</dt><dd>量出來的固定距離：振鏡基準 → 加工平面（mm），跟 Z 沒有連動</dd></div>
         <div><dt>K 值</dt><dd>放縮比例，1/16 級距，只能下拉選</dd></div>
         <div><dt>S 值</dt><dd>多層校正每一層的高度像素值</dd></div>
       </div>
@@ -438,14 +493,13 @@ button:disabled{opacity:.45;cursor:default}
   ];
   const FOCUS_FIRST = 4;
 
-  /* ── 示範參數（教學示例值）── */
-  const CFG = { zMin: 239, zMax: 252, zStart: 250.00, focal: 245.00, near: 0.60, hit: 0.15 };
-  /* 光路圖座標：viewBox 0 0 340 240，Y 軸只畫 239–252 mm */
-  const G = { cx: 170, y0: 72, scale: 7.0 };
-  const yOf = (z) => G.y0 + (z - CFG.zMin) * G.scale;
-  const yFocal = yOf(CFG.focal);
-  /* 對稱光錐：焦點最細、離焦越遠越寬；左右以 cx 對稱 → 不會斜一邊 */
-  const wBeam = (y) => 2.2 + Math.abs(y - yFocal) * 0.34;
+  /* ── 示範參數 ──────────────────────────────────────────────
+     Z 數值 = 聚焦軸的像素值（不是高度）。拖它 → 焦點上下移動，
+     加工平台固定不動。焦距高度是量測值，跟 Z 沒有連動。 */
+  const CFG = { zMin: -1500, zMax: 1500, zStart: -1100, z0px: 0, tol: 600, hit: 90 };
+  /* 光路圖：viewBox 0 0 340 240。平台固定在 G.YP，焦點在 yFocus() */
+  const G = { cx: 170, y0: 72, YP: 132, wa: 24, span: 34 };
+  const yFocus = () => Math.max(80, Math.min(200, G.YP + (S.z / 1500) * G.span));
 
   const S = {
     step: 0, z: CFG.zStart, engraving: false, everEngraved: false,
@@ -457,8 +511,10 @@ button:disabled{opacity:.45;cursor:default}
   const $$ = (s) => Array.prototype.slice.call(document.querySelectorAll(s));
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const mm = (v, n) => (+v).toFixed(n === undefined ? 2 : n);
-  const liveQ = () => { const d = Math.abs(S.z - CFG.focal); return { d: d, q: clamp(1 - d / 3, 0, 1) }; };
-  const signed = (d) => (d < 0.005 ? '0.00' : (S.z > CFG.focal ? '+' : '−') + mm(d));
+  const liveQ = () => { const d = Math.abs(S.z - CFG.z0px); return { d: d, q: clamp(1 - d / CFG.tol, 0, 1) }; };
+  const signedPx = (d) => (d < 1 ? '0' : (S.z > CFG.z0px ? '+' : '−') + Math.round(d));
+  /* 焦距高度是使用者量到之後輸入的數值（預設對齊截圖上的 244.000） */
+  const focalH = () => (S.measured === null ? 244.0 : S.measured);
 
   /* ── 教練框腳本（位置＝圖片的百分比）── */
   const COACH = {
@@ -505,40 +561,40 @@ button:disabled{opacity:.45;cursor:default}
     render();
   }
 
-  /* ── 光路圖 ── */
+  /* ── 光路圖：平台固定，焦點隨 Z 數值上下移動 ── */
   function drawDiagram() {
-    const yp = yOf(S.z);
-    const pts = [];
-    pts.push([G.cx + wBeam(G.y0), G.y0]);
-    if (yp > yFocal) pts.push([G.cx + wBeam(yFocal), yFocal]);
-    pts.push([G.cx + wBeam(yp), yp]);
-    pts.push([G.cx - wBeam(yp), yp]);
-    if (yp > yFocal) pts.push([G.cx - wBeam(yFocal), yFocal]);
-    pts.push([G.cx - wBeam(G.y0), G.y0]);
+    const yf = yFocus();
+    const wAt = (y) => (Math.abs(yf - G.y0) < 0.5 ? G.wa : G.wa * Math.abs(y - yf) / Math.abs(yf - G.y0));
+    const wp = Math.max(0.8, wAt(G.YP));
+    let pts;
+    if (yf < G.YP - 0.5) {
+      /* 焦點在材料上方：先收斂到焦點，再發散打到材料（散焦） */
+      pts = [[G.cx - G.wa, G.y0], [G.cx, yf], [G.cx + wp, G.YP], [G.cx - wp, G.YP], [G.cx, yf], [G.cx + G.wa, G.y0]];
+    } else {
+      /* 焦點在材料下方：光束還沒收斂就被材料擋住 */
+      pts = [[G.cx - G.wa, G.y0], [G.cx + G.wa, G.y0], [G.cx + wp, G.YP], [G.cx - wp, G.YP]];
+    }
     $('#dBeam').setAttribute('points', pts.map((p) => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' '));
+    $('#dAxis').setAttribute('y2', Math.max(G.y0 + 4, Math.min(yf, G.YP)).toFixed(1));
 
-    $('#dAxis').setAttribute('y2', Math.min(yp, 186).toFixed(1));
-    $('#dBase').setAttribute('y', (yp + 8).toFixed(1));
-    $('#dBase').setAttribute('height', Math.max(0, 240 - (yp + 8)).toFixed(1));
-    $('#dPlat').setAttribute('y', yp.toFixed(1));
-    $('#dMat').setAttribute('y', (yp - 3).toFixed(1));
-    $('#dPlatLabel').setAttribute('y', (yp + 7).toFixed(1));
-    const mid = (G.y0 + yp) / 2;
-    $('#dDimLine').setAttribute('y2', yp.toFixed(1));
-    $('#dDimT2').setAttribute('y1', yp.toFixed(1));
-    $('#dDimT2').setAttribute('y2', yp.toFixed(1));
-    const dt = $('#dDimText');
-    dt.setAttribute('y', mid.toFixed(1));
-    dt.setAttribute('transform', 'rotate(-90 36 ' + mid.toFixed(1) + ')');
-    dt.textContent = mm(S.z, 1);
-
-    /* 焦平面跟著算出來的焦距高度，不寫死 */
-    const fy = yFocal.toFixed(1);
+    /* 焦平面 / 焦點：跟著 Z 數值上下跑 */
+    const fy = yf.toFixed(1);
+    $('#dFocal').setAttribute('opacity', '1');
     $('#dFocalLine').setAttribute('y1', fy);
     $('#dFocalLine').setAttribute('y2', fy);
     $('#dFocalDot').setAttribute('cy', fy);
-    $('#dFocalText').setAttribute('y', (yFocal - 10).toFixed(1));
-    $('#dFocal').setAttribute('opacity', S.step >= 5 ? '1' : '0');
+    $('#dFocalText').setAttribute('y', (yf - 5).toFixed(1));
+    $('#dFocalText').textContent = S.step >= 5 ? '落焦 ＝ Z0' : '焦點';
+
+    /* 材料表面的亮點：越接近落焦越小越亮 */
+    const q = liveQ().q;
+    const sp = $('#dSpot');
+    sp.setAttribute('rx', (2.6 + (1 - q) * 15).toFixed(1));
+    sp.setAttribute('ry', (2.2 + (1 - q) * 3.6).toFixed(1));
+    sp.setAttribute('opacity', (0.14 + q * 0.86).toFixed(2));
+
+    /* 焦距高度：固定距離，只有數字會變，不會上下跑 */
+    $('#dDimText').textContent = mm(focalH(), 1);
   }
 
   /* ── 教練框 ── */
@@ -591,13 +647,13 @@ button:disabled{opacity:.45;cursor:default}
       mctx.fillText('尚未試刻', mw / 2, mh / 2 + 3);
       return;
     }
-    const q = S.markQ, d = Math.min(S.markD, 3);
-    const side = Math.min(mw, mh) * 0.34 * (1 + d * 0.42);
+    const q = S.markQ, dn = Math.min(S.markD / CFG.tol, 1);
+    const side = Math.min(mw, mh) * 0.34 * (1 + dn * 0.5);
     const n = 9, gap = side / n;
     const x0 = mw / 2 - side / 2, y0 = mh / 2 - side / 2;
     const flick = S.engraving ? 1 + Math.sin(t / 130) * 0.05 : 1;
     const alpha = clamp((0.16 + 0.78 * q) * flick, 0.1, 1);
-    const lw = 1 + d * 1.4;
+    const lw = 1 + dn * 1.6;
     if (q > 0.3) {
       mctx.save(); mctx.globalAlpha = (q - 0.3) * 0.55;
       mctx.strokeStyle = '#ffe9b8'; hatch(x0, y0, side, n, gap, lw + 3); mctx.restore();
@@ -612,7 +668,8 @@ button:disabled{opacity:.45;cursor:default}
   function paintLive() {
     if (S.step < FOCUS_FIRST) return;
     const { d, q } = liveQ();
-    $('#ovZ').textContent = mm(S.z, 3);
+    /* 變的是「Z 數值」這一欄（畫面左下），不是焦距高度 */
+    $('#ovZ').textContent = (S.z > 0 ? '+' : '') + Math.round(S.z);
     $('#ovUnit').textContent = S.unit;
     const pct = (S.z - CFG.zMin) / (CFG.zMax - CFG.zMin);
     $('#ovHit').firstElementChild.style.marginLeft = (pct * 100) + '%';
@@ -624,10 +681,12 @@ button:disabled{opacity:.45;cursor:default}
     /* 按下連續雕刻（或已經有痕跡）才顯示黑紙子畫面 */
     $('#matInset').hidden = !(S.engraving || S.markQ !== null);
     needMark = true;
-    $('#roMain').textContent = S.step === 4 ? (mm(S.z) + ' mm') : ('Z0 ＝ ' + mm(S.z0 === null ? CFG.focal : S.z0) + ' mm');
+    $('#roMain').textContent = S.step === 4
+      ? ('Z 數值 ' + (S.z > 0 ? '+' : '') + Math.round(S.z))
+      : ('Z0 ＝ ' + Math.round(S.z0 === null ? CFG.z0px : S.z0));
     $('#roSub').textContent = S.step === 4
-      ? (S.markQ === null ? 'Z 數值' : '離焦 ' + signed(d) + ' mm')
-      : (S.step === 5 ? '就是你剛對到的位置' : '中立位置（已鎖定）');
+      ? (S.markQ === null ? '聚焦軸像素值' : '離焦 ' + signedPx(d) + ' px')
+      : (S.step === 5 ? '焦點就貼在加工平面上' : '中立位置（已鎖定）');
     drawDiagram();
   }
 
@@ -695,18 +754,18 @@ button:disabled{opacity:.45;cursor:default}
     if (S.step === 4) {
       if (S.coach < (COACH[4] || []).length - 1) return '照橘框走：<strong>微調單位 → 開始連續雕刻 → 拖 Z 滑桿 → 再按一次停下</strong>。';
       const d = liveQ().d;
-      if (!S.everEngraved) return '先看「微調單位」，然後<strong>拖畫面左邊的 Z 數值滑桿</strong>，一邊盯住中心點。';
+      if (!S.everEngraved) return '先看「微調單位」，然後<strong>拖畫面左邊的 Z 數值滑桿</strong>，讓焦點上下移動。';
       if (!S.engraving) return '已停止雕刻。按下面的按鈕記下這個位置。';
-      if (d > CFG.near) return '還在離焦（示範：' + signed(d) + ' mm）。<strong>慢慢拖滑桿</strong>，看中心點會不會變亮。';
+      if (d > CFG.tol * 0.6) return '還在離焦（示範：' + signedPx(d) + ' px）。<strong>慢慢拖滑桿</strong>，看焦點會不會貼到平台面。';
       if (d > CFG.hit) return '<strong>快到了。</strong>小幅度拖，別跳過頭。';
-      return '<strong>就是這裡。</strong>最亮最清楚的位置就是落焦，按畫面右邊的「連續雕刻」停下來。';
+      return '<strong>就是這裡。</strong>焦點貼在加工平面上的那個 Z 數值就是落焦位置，按畫面右邊的「連續雕刻」停下來。';
     }
     if (S.step === 5) {
-      const d = S.z0 === null ? 0 : Math.abs(S.z0 - CFG.focal);
-      const warn = d > CFG.near ? '<div class="warn">剛才停的位置離焦 ' + mm(d, 1) + ' mm（示範值），不是最亮的。可以按「← 重新對焦」。</div>' : '';
-      return '落焦那一刻的焦平面，就是振鏡出廠設計的 <strong>Z0（中立位置）</strong>。之後的 2D 尺寸校正、多層校正，都以它為基準。' + warn;
+      const d = S.z0 === null ? 0 : Math.abs(S.z0 - CFG.z0px);
+      const warn = d > CFG.tol * 0.6 ? '<div class="warn">剛才那個位置離焦 ' + signedPx(d) + ' px（示範值），還不是最準的。可以按「← 重新對焦」。</div>' : '';
+      return '焦點剛好貼在加工平面上的那個 Z 數值，就是 <strong>Z0（中立位置）</strong>。之後的 2D 尺寸校正、多層校正，都以它為基準。' + warn;
     }
-    return '焦距高度<strong>不用打字</strong>：點右邊「調整」叫出拉桿，拉到量到的數字再放開，數值就載入。';
+    return '焦距高度<strong>是量出來的，不是調出來的</strong>：拿尺量平台面到振鏡基準，點「調整」拉到量到的數字、放開就載入。它只是告訴軟體平面在哪，畫面不會因此上下移動。';
   }
 
   /* ── 主畫面 ── */
@@ -729,7 +788,7 @@ button:disabled{opacity:.45;cursor:default}
       $('#hrow').style.display = S.step === 6 ? 'flex' : 'none';
       $('#hNote').style.display = S.step === 6 ? '' : 'none';
       $('#z0Note').style.display = S.step === 5 ? '' : 'none';
-      if (S.step === 5) $('#z0Num').textContent = mm(S.z0 === null ? CFG.focal : S.z0) + ' mm';
+      if (S.step === 5) $('#z0Num').textContent = ((S.z0 === null ? CFG.z0px : S.z0) > 0 ? '+' : '') + Math.round(S.z0 === null ? CFG.z0px : S.z0) + ' px';
       if (S.step === 6) $('#hVal').textContent = S.measured === null ? '—' : mm(S.measured, 1) + ' mm';
       $('#ovUnit').classList.toggle('tap', live && S.coach === 0);
       paintLive();
@@ -808,11 +867,10 @@ button:disabled{opacity:.45;cursor:default}
 
   /* ── 完成 ── */
   function showDone() {
-    const z0 = S.z0 === null ? CFG.focal : S.z0;
-    $('#sumZ0').textContent = mm(z0) + ' mm';
-    $('#sumFocal').textContent = mm(S.measured, 1) + ' mm';
-    $('#sumTips').innerHTML = '軟體 Z 讀值 ' + mm(z0) + ' mm／實測 ' + mm(S.measured, 1) +
-      ' mm——兩個數字本來就不一定會相同，軟體只是拿實測值套進各功能。重點是<b>從頭到尾用同一種量法</b>。';
+    const z0 = S.z0 === null ? CFG.z0px : S.z0;
+    $('#sumZ0').textContent = (z0 > 0 ? '+' : '') + Math.round(z0) + ' px';
+    $('#sumFocal').textContent = mm(focalH(), 1) + ' mm';
+    $('#sumTips').innerHTML = 'Z0 是「焦點貼在加工平面」時聚焦軸的位置（像素值）；焦距高度是「振鏡基準到加工平面」的實際距離（mm）。<b>兩個是不一樣的東西</b>——一個是軟體位置，一個是量到的長度。';
     $('#doneVeil').hidden = false;
   }
   $('#doneNext').onclick = resetAll;
@@ -834,7 +892,7 @@ button:disabled{opacity:.45;cursor:default}
     if (!m) return;
     $('#startVeil').hidden = true;
     const i = +m[1];
-    if (i >= 5) { S.markD = 0; S.markQ = 1; S.everEngraved = true; S.z = CFG.focal; S.z0 = CFG.focal; S.measured = 240; }
+    if (i >= 5) { S.markD = 0; S.markQ = 1; S.everEngraved = true; S.z = CFG.z0px; S.z0 = CFG.z0px; S.measured = 240; }
     if (i === 4) { S.z = CFG.zStart; S.markQ = null; S.markD = 0; S.z0 = null; }
     go(i);
   }
