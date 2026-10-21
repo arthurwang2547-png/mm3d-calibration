@@ -1,0 +1,789 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>MM3D PLUS｜STEP 00–01 鏡頭校正前置與中立位置（V2 版面示範）</title>
+<!--
+  V2 開場 ── 手機版版面示範
+
+  把「進入軟體」到「填完焦距高度」這一段補起來，順序：
+    00-0 全貌        整段鏡頭校正在做什麼（5 個階段）
+    00-1 入口        選項 → 掃描頭 → 鏡頭管理員 → 新增鏡頭
+    00-2 校正法      公式法係數留預設，勾格點法
+    00-3 K 值        格點校正視窗的步驟 1～4
+    01-1 測焦點      連續雕刻 ＋ 移動 Z，讓中心點對到最亮
+    01-2 確認 Z0     停止雕刻，這個焦平面就是中立位置
+    01-3 焦距高度    量平台面到振鏡基準，量到多少填多少
+
+  流程依據：興誠官方《多層校正使用說明 MM3D-Plus V3.02》與
+  _mm3d_multi 的 15 張實機截圖。數值全部是教學示例值。
+
+  單一離線檔；截圖已內嵌。審稿跳段： #s0 #s1 #s2 #s3 #s4 #s5 #s6
+-->
+<style>
+:root{
+  --ink:#173b50; --ink2:#203e55; --muted:#748b9a; --line:#d6e2e9;
+  --teal:#078d98; --teal-lite:#0db8a3; --blue:#1674d6; --orange:#ef8a23;
+  --header:#183e59; --panel:#f8fbfd; --panel-line:#ccdae5; --primary:#1b4c70;
+  --bg:#eef3f7; --stop:#b6483c; --warn:#a8412f;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0;overflow:hidden}
+body{
+  height:var(--app-h,100dvh);
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  display:grid;grid-template-rows:44px 42px minmax(0,1fr) auto auto;
+  background:var(--bg);color:var(--ink2);
+  font:14px/1.45 -apple-system,BlinkMacSystemFont,'PingFang TC','Noto Sans TC',sans-serif;
+}
+button{font:inherit;color:var(--ink2);background:#fff;border:1px solid var(--line);border-radius:8px;cursor:pointer;touch-action:manipulation}
+button:disabled{opacity:.45;cursor:default}
+.hidden{display:none!important}
+
+/* ── 頂部 ───────────────────────────────────────────────── */
+.v2-header{display:flex;align-items:center;gap:8px;padding:0 8px 0 12px;background:var(--header);color:#fff;min-width:0}
+.v2-header h1{font-size:12px;font-weight:650;margin:0;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v2-header button{width:38px;height:38px;flex:none;border:0;background:transparent;color:#fff;font-size:17px;padding:0}
+
+/* ── 7 段進度 ───────────────────────────────────────────── */
+.prog{display:flex;gap:3px;padding:0 8px;background:#fff;border-bottom:1px solid var(--line);align-items:stretch}
+.prog button{flex:1;min-width:0;border:0;background:transparent;padding:0;display:flex;flex-direction:column;justify-content:center;gap:3px;border-radius:6px}
+.prog i{display:block;height:4px;border-radius:3px;background:#e2eaf1}
+.prog span{font-size:8.5px;color:#9aacb9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;line-height:1.2}
+.prog button[data-st="done"] i{background:#8fd6cf}
+.prog button[data-st="done"] span{color:#5d7d8e}
+.prog button[data-st="now"] i{background:var(--primary)}
+.prog button[data-st="now"] span{color:var(--primary);font-weight:700}
+
+/* ── 舞台 ───────────────────────────────────────────────── */
+.stage{min-height:0;display:grid;padding:6px 8px;gap:6px}
+.scene{min-height:0;display:none;grid-template-rows:minmax(0,1fr);gap:6px}
+.scene.on{display:grid}
+.panel{position:relative;min-height:0;border:1px solid var(--panel-line);border-radius:10px;background:var(--panel);overflow:hidden;display:flex;flex-direction:column}
+.panelhead{height:22px;flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 9px;background:#ffffffed;border-bottom:1px solid #e4ecf2;font-size:10px;color:#7c95a5}
+.panelhead b{color:#385d74;font-weight:650;font-size:10px}
+.panelhead .task{color:#1c609c;background:#eef6fe;border:1px solid #cfe1f3;border-radius:20px;padding:1px 7px;font-size:9.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:62%}
+.panelbody{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px}
+
+/* 00-0 全貌：5 個階段 */
+.mapstage{display:grid;gap:7px}
+.mapintro{font-size:12px;line-height:1.6;color:#3d5c72;background:#eff6fd;border:1px solid #d5e6f7;border-radius:9px;padding:9px 10px}
+.mapintro b{color:#155a95}
+.mrow{border:1px solid #dbe7ef;border-radius:9px;background:#fff;overflow:hidden}
+.mrow>button{width:100%;display:flex;gap:9px;align-items:center;padding:9px 10px;border:0;background:transparent;text-align:left}
+.mrow .n{width:20px;height:20px;flex:none;border-radius:50%;background:#e7eef5;color:#7a90a2;font:700 11px/1 -apple-system,sans-serif;display:grid;place-items:center}
+.mrow .t{display:block;font-size:12.5px;font-weight:650;color:#23445e;line-height:1.3}
+.mrow .d{display:block;font-size:10.5px;color:#8ba0ae;margin-top:2px;line-height:1.4}
+.mrow .arw{margin-left:auto;color:#a9bcc9;font-size:11px;flex:none}
+.mrow.here{border-color:#9dc3e6;background:#f7fbff}
+.mrow.here .n{background:var(--primary);color:#fff}
+.mrow .more{display:none;padding:0 10px 10px 39px;font-size:11.5px;line-height:1.6;color:#4c6b80}
+.mrow.open .more{display:block}
+.mrow .more em{display:block;font-style:normal;margin-top:6px;color:#7d5b2a;background:#fffaf0;border-left:2px solid #e8b96a;padding:6px 8px;border-radius:0 6px 6px 0;font-size:11px}
+.mhere{font-size:10px;color:#1c609c;font-weight:650;border:1px solid #b9d3f5;background:#eaf3ff;border-radius:20px;padding:1px 7px;margin-left:auto;flex:none}
+
+/* 00-1～00-3：截圖與局部裁切 */
+.shot{display:block;width:100%;height:auto;border:1px solid #c9d7e2;border-radius:8px;background:#fff}
+.shotwrap2{position:relative;display:block}
+.shotwrap2 img{display:block;width:100%;height:auto;border:1px solid #c9d7e2;border-radius:8px}
+.shotwrap2 .ring{position:absolute;border:2px solid #ef8a23;border-radius:5px;box-shadow:0 0 0 3px #ef8a2326;pointer-events:none}
+.shotwrap2 .ring.tag::after{content:attr(data-t);position:absolute;left:-2px;top:-17px;background:#ef8a23;color:#fff;font:700 9px/1 -apple-system,sans-serif;padding:2px 5px;border-radius:4px;white-space:nowrap}
+.crop{background-repeat:no-repeat;background-color:#fff;border:1px solid #c9d7e2;border-radius:8px;flex:none}
+.croptag{font-size:9.5px;color:#7c95a5;margin:0 0 4px}
+.shotrow{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}
+.steps{display:grid;gap:6px;margin-top:9px}
+.steps .s{display:flex;gap:8px;align-items:flex-start;font-size:11.5px;line-height:1.55;color:#3d5c72}
+.steps .s b{width:17px;height:17px;flex:none;border-radius:50%;background:var(--primary);color:#fff;font:700 10px/1 -apple-system,sans-serif;display:grid;place-items:center;margin-top:1px}
+.steps .s em{font-style:normal;color:#155a95;font-weight:650}
+.callout{font-size:11px;line-height:1.6;border-radius:8px;padding:8px 9px;margin-top:9px}
+.callout.warn{background:#fdf3f1;border:1px solid #f0d5d0;color:#8e3d2c}
+.callout.info{background:#f3f8fc;border:1px solid #dbe7ef;color:#42607a}
+.callout b{font-weight:700}
+
+/* 01-x 光路側視 */
+.svgwrap{position:relative;flex:1;min-height:0}
+#scene{width:100%;height:100%;display:block}
+.readout{position:absolute;left:0;right:0;bottom:0;height:26px;display:flex;align-items:center;gap:8px;padding:0 9px;border-top:1px solid #e0e9f0;background:#f9fcfe;font-size:11.5px;font-weight:650;color:#196f84}
+.readout b{font-variant-numeric:tabular-nums;white-space:nowrap}
+.readout small{margin-left:auto;font-weight:400;font-size:9.5px;color:#738b9b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.material{display:grid;grid-template-columns:auto minmax(0,1fr);gap:9px;padding:8px 9px;align-items:center;flex:none}
+#mark{display:block;height:min(25vw,110px);width:auto;aspect-ratio:4/3;border-radius:7px;border:1px solid #2b4a5c;background:#0d0e10}
+.matright{display:flex;flex-direction:column;gap:5px;min-width:0}
+.metric{display:flex;align-items:center;gap:6px}
+.metric span{font-size:9.5px;color:#7c95a5;white-space:nowrap}
+.bar{flex:1;height:7px;border-radius:5px;background:#e3ebf1;overflow:hidden;min-width:20px}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#8fd6cf,#0db8a3)}
+.metric b{font-size:10.5px;color:#196f84;font-variant-numeric:tabular-nums;min-width:30px;text-align:right}
+.matnote{font-size:10px;line-height:1.45;color:#7c95a5}
+.matnote strong{color:#1c609c;font-weight:650}
+.matnote.tiny{font-size:9px;color:#a4b4bf}
+
+/* ── 控制區 ─────────────────────────────────────────────── */
+.controls{padding:7px 10px 9px;background:#fff;border-top:1px solid var(--line);display:grid;gap:6px}
+.controls:empty{display:none}
+.ctlrow{display:flex;align-items:baseline;gap:8px}
+.ctlrow span{font-size:11.5px;color:#5d7d8e;font-weight:600}
+.ctlrow output{margin-left:auto;font-size:19px;font-weight:700;color:var(--primary);font-variant-numeric:tabular-nums;letter-spacing:-.3px}
+.ctlrow output em{font-size:11px;font-style:normal;color:#8ba0ae;font-weight:500;margin-left:2px}
+#zslider{width:100%;height:22px;accent-color:var(--teal);margin:0}
+.jogrow{display:grid;grid-template-columns:52px minmax(0,1fr) 52px;gap:7px;align-items:center}
+.jogrow>button{height:44px;font-size:22px;font-weight:700;border-radius:10px;color:var(--primary);background:#f4f9fc;border-color:#cfe0ec}
+.joggrid{display:flex;gap:4px;justify-content:center;min-width:0}
+.joggrid button{flex:1;height:36px;font-size:11.5px;padding:0 2px;min-width:0;font-variant-numeric:tabular-nums}
+.joggrid button small{display:block;font-size:8.5px;color:#8ba0ae;font-weight:400}
+.joggrid button[aria-pressed="true"]{background:var(--primary);border-color:var(--primary);color:#fff;font-weight:650}
+.joggrid button[aria-pressed="true"] small{color:#bcd6e6}
+.lockrow{display:flex;align-items:center;gap:8px;padding:9px 11px;border-radius:10px;background:#f1faf8;border:1px solid #cfeae5}
+.lockrow i{width:20px;height:20px;border-radius:50%;background:var(--teal-lite);color:#fff;font-style:normal;font-size:12px;display:grid;place-items:center;flex:none}
+.lockrow span{font-size:12px;color:#0a7d74;font-weight:600}
+.lockrow b{margin-left:auto;font-size:18px;color:#0a7d74;font-variant-numeric:tabular-nums}
+.field{display:grid;grid-template-columns:48px minmax(0,1fr) 48px;gap:7px;align-items:center}
+.field button{height:44px;font-size:20px;font-weight:700;color:var(--primary);background:#f4f9fc;border-color:#cfe0ec}
+.field input{height:44px;width:100%;text-align:center;font:inherit;font-size:21px;font-weight:700;color:var(--primary);border:1px solid #cfe0ec;border-radius:9px;background:#fff;font-variant-numeric:tabular-nums;padding:0 4px}
+.field input::-webkit-outer-spin-button,.field input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.chips{display:flex;gap:5px}
+.chips button{flex:1;height:30px;font-size:11px;padding:0}
+.chips button.on{background:#eef6fe;border-color:#9dc3e6;color:#1c609c;font-weight:650}
+.zref{font-size:9.5px;color:#93a7b4;text-align:center}
+
+/* ── 底部 ───────────────────────────────────────────────── */
+.foot{padding:8px 10px calc(10px + env(safe-area-inset-bottom));background:#fff;display:grid;gap:7px}
+.hint{font-size:12.5px;line-height:1.5;color:#2b4a60;min-height:38px}
+.hint strong{color:#0b7c88;font-weight:650}
+.hint .warn{color:var(--warn);font-weight:600}
+.cta{height:50px;border:0;border-radius:10px;background:var(--primary);color:#fff;font-size:15px;font-weight:650;width:100%}
+.cta.stop{background:var(--stop)}
+.cta2{height:38px;width:100%;font-size:12.5px;color:#5d7d8e;background:#f6f9fb}
+
+/* ── 覆蓋層 ─────────────────────────────────────────────── */
+.veil{position:fixed;inset:0;z-index:70;background:#eef4f9f2;backdrop-filter:blur(4px);display:grid;place-items:center;padding:20px;overflow-y:auto}
+.veil[hidden]{display:none!important}
+.veil .card{max-width:330px;text-align:center;margin:auto}
+.veil h2{font-size:21px;line-height:1.35;margin:0 0 10px;color:#23445e}
+.veil p{font-size:13px;line-height:1.7;color:#637f94;margin:0 0 15px}
+.veil .mini{display:grid;gap:6px;margin:0 0 17px;text-align:left}
+.veil .mini div{display:flex;gap:8px;align-items:flex-start;font-size:11.5px;color:#4c6b80;background:#fff;border:1px solid #dbe7ef;border-radius:9px;padding:7px 10px;line-height:1.45}
+.veil .mini i{width:17px;height:17px;border-radius:50%;background:#e6eef4;color:#6d8698;font-style:normal;font-size:10px;font-weight:700;display:grid;place-items:center;flex:none;margin-top:1px}
+.veil .mini b{font-weight:650;color:#23445e}
+.veil button.go{height:50px;min-width:215px;border:0;border-radius:10px;background:var(--primary);color:#fff;font-size:15px;font-weight:650}
+.veil small{display:block;margin-top:11px;font-size:10.5px;color:#93a7b4}
+.sum{background:#fff;border:1px solid #dbe7ef;border-radius:11px;padding:12px;display:grid;gap:8px;text-align:left}
+.sum .row{display:flex;align-items:baseline;gap:8px;font-size:12.5px;color:#5d7d8e}
+.sum .row b{margin-left:auto;font-size:16px;color:var(--primary);font-variant-numeric:tabular-nums}
+.sum .row b.t{color:var(--teal)}
+.sum .tips{font-size:11px;line-height:1.6;color:#7c95a5;border-top:1px solid #eaf0f4;padding-top:7px}
+.sum .tips b{color:#0a7d74}
+
+/* 說明表 */
+.sheet{position:fixed;inset:0;z-index:80;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch}
+.sheet[hidden]{display:none!important}
+.sheet .bar{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:8px;height:44px;padding:0 8px 0 12px;background:var(--header);color:#fff}
+.sheet .bar b{font-size:13px;font-weight:650;flex:1}
+.sheet .bar button{width:38px;height:38px;border:0;background:transparent;color:#fff;font-size:19px}
+.sheet .body{padding:12px 12px 34px;display:grid;gap:11px}
+.sheet .box{background:#fff;border:1px solid #dbe7ef;border-radius:10px;padding:11px 12px;display:grid;gap:6px}
+.sheet h3{font-size:13px;margin:0;color:#23445e}
+.sheet p{font-size:12.5px;line-height:1.7;color:#4c6b80;margin:0}
+.sheet p b{color:#23445e}
+.sheet .kv{display:grid;gap:6px}
+.sheet .kv div{display:grid;grid-template-columns:84px minmax(0,1fr);gap:8px;font-size:12px;line-height:1.6}
+.sheet .kv dt{color:#196f84;font-weight:650}
+.sheet .kv dd{margin:0;color:#4c6b80}
+
+@media(orientation:landscape){
+  body{grid-template-rows:38px 36px minmax(0,1fr) auto auto}
+  .stage{padding:4px 8px}
+  .hint{min-height:0}
+  #mark{height:min(22vh,96px)}
+}
+</style>
+</head>
+<body>
+
+<header class="v2-header">
+  <h1>MM3D PLUS｜STEP 00–01 鏡頭校正前置與中立位置</h1>
+  <button id="whyBtn" aria-label="說明" title="依據與術語">ⓘ</button>
+</header>
+
+<nav class="prog" id="prog" aria-label="進度"></nav>
+
+<main class="stage">
+
+  <!-- ══ 00-0 全貌 ══ -->
+  <section class="scene" data-i="0">
+    <div class="panel">
+      <div class="panelhead"><span><b>00-0 全貌</b></span><span class="task">先看懂整段在做什麼</span></div>
+      <div class="panelbody">
+        <div class="mapstage">
+          <div class="mapintro">鏡頭校正只有一件事：<b>先把中立位置這一層校正準，再往上加層。</b><br>順序不能顛倒，下面的 5 個階段也是這樣排的。</div>
+          <div class="mrow" data-m="0"><button><span class="n">1</span><span><span class="t">前提</span><span class="d">版本、控制卡選項、校正檔相容性</span></span><span class="arw">▾</span></button><div class="more">先把這三件事確認好，後面的校正才有意義。版本要 MM3D-Plus V3.02 以上；控制卡的 Z Out Inverse 要勾（勾了聚焦軸反而反向再取消）。<em>V3.02 起 Z 軸 S 像素輸出方向反轉，預設 Smax = 32767、Smin = -32768。方向反了，聚焦軸的校正結果會整體顛倒。</em></div></div>
+          <div class="mrow here" data-m="1"><button><span class="n">2</span><span><span class="t">2D 校正</span><span class="d">中立位置的平面先校正到準</span></span><span class="mhere">我們在這裡</span></button><div class="more">新增校正檔 → 選校正法 → 填 K 值 → 調中立位置落焦、量並填焦距高度 → 聚焦軸校正 → 全幅面輸出確認大於雕刻範圍。<em>多層校正是站在 2D 校正上的。中立位置的平面不準，上面每一層都會跟著偏。</em></div></div>
+          <div class="mrow" data-m="2"><button><span class="n">3</span><span><span class="t">焦距量測</span><span class="d">量出振鏡能走多高、多低</span></span><span class="arw">▾</span></button><div class="more">用焦距量測工具找出 Zmax 與 Zmin，確認目標幅面在整個變焦範圍內都做得到。<em>先知道振鏡的變焦範圍與擺幅極限，才知道哪幾個高度放得進去。</em></div></div>
+          <div class="mrow" data-m="3"><button><span class="n">4</span><span><span class="t">2.5D 多層校正</span><span class="d">每一層各自落焦與校正</span></span><span class="arw">▾</span></button><div class="more">選中立位置情境（Z0 = Zmax／Zmid／Zmin），再對每個要校正的層做：調 S 高度落焦 → 聚焦軸校正 → 格點法或比例法。<em>不同高度的聚焦軸補償不是線性、也不是等比例。用線性推算，中間高度就會失焦，這就是要多層校正一層一層做的原因。</em></div></div>
+          <div class="mrow" data-m="4"><button><span class="n">5</span><span><span class="t">新增實體層</span><span class="d">不夠準就在那個高度補一層</span></span><span class="arw">▾</span></button><div class="more">基本三層校完後，若某些高度仍有焦點偏移或尺寸誤差，就在那個高度直接補一層。最多額外插入 6 層，總共 9 層。<em>層數不是越多越好，加在真正需要補償的高度才有意義。</em></div></div>
+          <div class="callout info" style="margin-top:2px">為什麼一定要照這個順序：<b>多層校正是站在 2D 校正上的。</b>中立位置那一層不準，上面每一層都會跟著偏，再怎麼補也補不回來。<br><br>這一段只做第 2 階段的<b>前半段</b>——從開軟體走到填完焦距高度。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 00-1 入口 ══ -->
+  <section class="scene" data-i="1">
+    <div class="panel">
+      <div class="panelhead"><span><b>00-1 入口</b></span><span class="task">選項 → 掃描頭 → 鏡頭管理員</span></div>
+      <div class="panelbody">
+        <p class="croptag">實機畫面：選項視窗（橘框是這一步要點的兩個地方）</p>
+        <div class="shotwrap2">
+          <img src="{{IMG_ENTRY}}" alt="MM3D-Plus 選項視窗的鏡頭管理員">
+          <span class="ring tag" data-t="① 掃描頭" style="left:9.5%;top:66.8%;width:13.5%;height:6.2%"></span>
+          <span class="ring tag" data-t="② 新增鏡頭" style="left:80.5%;top:18.4%;width:16.5%;height:7.5%"></span>
+        </div>
+        <div class="steps">
+          <div class="s"><b>1</b><span>開 MM3D-Plus，上方功能表點 <em>選項</em>。</span></div>
+          <div class="s"><b>2</b><span>左邊樹狀清單往下，展開 <em>掃描頭</em>（在「系統」那一大段的下面）。</span></div>
+          <div class="s"><b>3</b><span>點 <em>鏡頭管理員</em>，右邊就會出現鏡頭清單。</span></div>
+          <div class="s"><b>4</b><span>按右邊的 <em>新增鏡頭</em>，打一個名字（例：NEW1），按確定。</span></div>
+        </div>
+        <div class="callout info">校正檔建立之後，才看得到<b>焦距高度、中立位置與校正法</b>這幾個欄位。還沒新增鏡頭就找不到它們。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 00-2 校正法 ══ -->
+  <section class="scene" data-i="2">
+    <div class="panel">
+      <div class="panelhead"><span><b>00-2 校正法</b></span><span class="task">校正法選格點法</span></div>
+      <div class="panelbody">
+        <p class="croptag">實機畫面：新增鏡頭後出現的校正檔選項</p>
+        <img class="shot" src="{{IMG_METHOD}}" alt="校正檔選項：校正法" style="max-width:320px">
+        <div class="steps">
+          <div class="s"><b>1</b><span>鏡頭名稱會自己帶入剛剛打的名字，不用改。</span></div>
+          <div class="s"><b>2</b><span>校正法選 <em>格點法</em>。多層校正就是站在格點法的基礎上，一層一層補。</span></div>
+          <div class="s"><b>3</b><span>若你的版本這一頁還多一個「公式法」分頁（桶形／枕形／梯形／平行四邊形），<em>那一頁維持預設、不要填</em>。它是底層，不是這次要調的東西。</span></div>
+          <div class="s"><b>4</b><span>按 <em>確認</em>，才會進到下一頁。</span></div>
+        </div>
+        <div class="callout warn"><b>選了不能改。</b>比例法或格點法一旦選定就固定住，之後要改只能重新新增鏡頭、從頭校正。所以先想清楚再按確認。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 00-3 K 值 ══ -->
+  <section class="scene" data-i="3">
+    <div class="panel">
+      <div class="panelhead"><span><b>00-3 K 值</b></span><span class="task">照視窗左邊的步驟 1～4</span></div>
+      <div class="panelbody">
+        <p class="croptag">實機畫面：格點校正視窗的左半邊，就是步驟 1～4</p>
+        <div class="crop" style="width:100%;max-width:285px;height:255px;background-image:url('{{IMG_K}}');background-position:-60px -68px"></div>
+        <div class="steps">
+          <div class="s"><b>1</b><span><em>步驟 1 放縮比例 K</em>：只能下拉選，不能打字。級距是 1/16，<em>先用 0.5</em>。</span></div>
+          <div class="s"><b>2</b><span><em>步驟 2 執行試刻</em>：按右邊的「試刻」，讓它刻一組框。</span></div>
+          <div class="s"><b>3</b><span><em>步驟 3 輸入較短的中心線</em>：拿尺量刻出來的框，把<em>比較短的那一條</em>長度填進去（公厘）。</span></div>
+          <div class="s"><b>4</b><span><em>步驟 4 輸入校正值</em>：軟體算好之後填回去。</span></div>
+        </div>
+        <div class="callout info">用格點法時，K 最大選到 <b>0.9375</b>（含）以下。這一步只是先給一個初值——真正要準，是等中立位置落焦之後，量全幅面中心線再回來確認。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 01-1 / 01-2 / 01-3 共用光路 ══ -->
+  <section class="scene" data-i="4">
+    <div class="panel">
+      <div class="panelhead"><span><b id="optStep">01-1 測焦點</b></span><span class="task" id="optTask">任務：讓中心點對到最亮</span></div>
+      <div class="svgwrap">
+        <svg id="scene" viewBox="0 0 340 300" preserveAspectRatio="xMidYMid meet" role="img" aria-label="振鏡、聚焦軸與加工平台的側視光路">
+          <defs>
+            <linearGradient id="gGalvo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#35688b"/><stop offset="1" stop-color="#1b4059"/></linearGradient>
+            <linearGradient id="gPlat" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e6eef4"/><stop offset="1" stop-color="#b6c9d9"/></linearGradient>
+            <linearGradient id="gBeam" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffc46b" stop-opacity=".78"/><stop offset="1" stop-color="#ff7a18" stop-opacity=".30"/></linearGradient>
+            <pattern id="pBase" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="9" height="9" fill="#f4f8fb"/><line x1="0" y1="0" x2="0" y2="9" stroke="#e0e9f0" stroke-width="1.6"/></pattern>
+          </defs>
+          <rect id="base" x="22" y="234" width="296" height="66" fill="url(#pBase)"/>
+          <text x="150" y="292" text-anchor="middle" font-size="9" fill="#a8bccb">Z 軸機台</text>
+          <polygon id="beam" fill="url(#gBeam)"/>
+          <rect x="76" y="20" width="148" height="72" rx="6" fill="url(#gGalvo)"/>
+          <text x="88" y="40" font-size="11" fill="#dcecf5">振鏡</text>
+          <path d="M136 50 L164 50 L150 64 Z" fill="#7fd8e8" opacity=".85"/>
+          <ellipse cx="150" cy="76" rx="28" ry="6" fill="#eaf7f9" stroke="#0db8a3" stroke-width="1.6"/>
+          <text x="232" y="80" font-size="9" fill="#0a8b83">聚焦軸（中立）</text>
+          <line x1="68" y1="92" x2="232" y2="92" stroke="#8aa3b3" stroke-width="1"/>
+          <line x1="68" y1="88" x2="68" y2="96" stroke="#8aa3b3" stroke-width="1"/>
+          <line x1="232" y1="88" x2="232" y2="96" stroke="#8aa3b3" stroke-width="1"/>
+          <text x="238" y="95" font-size="9" fill="#7c95a5">量測基準</text>
+          <g id="dimGroup">
+            <line id="dimLine" x1="26" y1="92" x2="26" y2="164" stroke="#5d7d8e" stroke-width="1"/>
+            <line x1="20" y1="92" x2="32" y2="92" stroke="#5d7d8e" stroke-width="1"/>
+            <line id="dimT2" x1="20" y1="164" x2="32" y2="164" stroke="#5d7d8e" stroke-width="1"/>
+            <g id="dimBreak" stroke="#5d7d8e" stroke-width="1"><line/><line/></g>
+            <text id="dimText" x="15" y="128" font-size="12.5" font-weight="700" fill="#196f84" text-anchor="middle" transform="rotate(-90 15 128)">—</text>
+          </g>
+          <rect id="material" x="54" y="220" width="190" height="4" fill="#15171a"/>
+          <rect id="platform" x="40" y="224" width="218" height="10" rx="2" fill="url(#gPlat)" stroke="#9db3c4" stroke-width="1"/>
+          <text id="platLabel" x="264" y="232" font-size="9" fill="#7c95a5">加工平台</text>
+          <g id="focalGroup" opacity="0">
+            <line x1="30" y1="164" x2="300" y2="164" stroke="#0db8a3" stroke-width="1.4" stroke-dasharray="6 4"/>
+            <circle cx="150" cy="164" r="2.8" fill="#0db8a3"/>
+            <text x="296" y="159" text-anchor="end" font-size="9.5" fill="#0a8b83" stroke="#f8fbfd" stroke-width="3" paint-order="stroke">焦平面 ＝ Z0</text>
+          </g>
+        </svg>
+        <div class="readout"><b id="roMain">—</b><small id="roSub"></small></div>
+      </div>
+      <div class="panelhead" style="border-top:1px solid #e4ecf2;border-bottom:0"><span><b>中心點試刻</b></span><span>黑紙／金屬片</span></div>
+      <div class="material">
+        <canvas id="mark" width="236" height="177"></canvas>
+        <div class="matright">
+          <div class="metric"><span>示範對焦</span><div class="bar"><i id="qbar"></i></div><b id="qval">—</b></div>
+          <div class="matnote" id="matNote">中心點試刻區。<strong>黑紙或金屬片</strong>上看痕跡亮不亮，是判斷落焦的依據。</div>
+          <div class="matnote tiny">＊示範用指示，實機以目視試刻為準</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<section class="controls" id="controls"></section>
+
+<footer class="foot">
+  <div class="hint" id="hint"></div>
+  <button class="cta2 hidden" id="cta2"></button>
+  <button class="cta" id="cta"></button>
+</footer>
+
+<!-- 起始頁 -->
+<div class="veil" id="startVeil">
+  <div class="card">
+    <h2>先從哪裡進去</h2>
+    <p>這一段帶你從「開軟體」走到「填完焦距高度」。全程只有一個判斷：<b>中心點有沒有對到最亮。</b></p>
+    <div class="mini">
+      <div><i>1</i><span><b>進去、建檔</b>　選項 → 鏡頭管理員 → 新增鏡頭</span></div>
+      <div><i>2</i><span><b>校正法與 K 值</b>　公式法不要動，勾格點法</span></div>
+      <div><i>3</i><span><b>中立位置</b>　測焦點 → 確認 Z0 → 填焦距高度</span></div>
+    </div>
+    <button class="go" id="startGo">開始 ▶</button>
+    <small>版面示範 · 不需接機</small>
+  </div>
+</div>
+
+<!-- 完成 -->
+<div class="veil" id="doneVeil" hidden>
+  <div class="card">
+    <h2>前置與中立位置完成</h2>
+    <div class="sum">
+      <div class="row">Z0 中立位置（落焦高度）<b id="sumZ0">—</b></div>
+      <div class="row">焦距高度（實測填入）<b class="t" id="sumFocal">—</b></div>
+      <div class="tips" id="sumTips"></div>
+    </div>
+    <button class="go" id="doneNext" style="margin-top:14px">重新示範一次</button>
+    <small>下一段：聚焦軸校正 → 全幅面輸出量中心線 → 3D 多層校正</small>
+  </div>
+</div>
+
+<!-- 依據與術語 -->
+<div class="sheet" id="whySheet" hidden>
+  <div class="bar"><b>依據、術語與取值</b><button id="whyClose" aria-label="關閉">×</button></div>
+  <div class="body">
+    <div class="box">
+      <h3>這一頁的順序怎麼來的</h3>
+      <p>依興誠官方《多層校正使用說明 MM3D-Plus V3.02》（76 頁）與多層校正題組整理，並對照 <b>15 張實機截圖</b>。</p>
+      <p>官方說明把整段分成 5 個階段：<b>前提 → 2D 校正 → 焦距量測 → 2.5D 校正 → 新增實體層</b>。這一頁只做第 2 階段的<b>前半段</b>：從開軟體到填完焦距高度。</p>
+    </div>
+    <div class="box">
+      <h3>版本差異：公式法分頁</h3>
+      <p>官方說明寫「使用多層校正時，維持公式法的預設值」。但實機 V3.02 的「校正檔選項」只出現 <b>比例法／格點法</b> 兩個選項，沒有公式法欄位。</p>
+      <p>所以 00-2 照實機畫面走：選格點法。若客戶的版本多出「公式法」分頁（桶形／枕形／梯形／平行四邊形），那一頁維持預設、不要填即可。</p>
+    </div>
+    <div class="box">
+      <h3>為什麼中立位置排在最前面</h3>
+      <p>焦距高度是<b>落焦那一刻</b>量到的距離。還沒落焦就要填一個數字，使用者會卡在第一步——他不知道要填多少。</p>
+      <p>所以順序是：先用連續雕刻把中心點對到最亮 → 停下來的焦平面就是 Z0（中立位置）→ 再量、再填。</p>
+    </div>
+    <div class="box">
+      <h3>為什麼填 240 或 248 都可以</h3>
+      <p>每個人量的起點、終點、工具不一樣，量出來本來就會有差。軟體<b>不檢查</b>這個數字對不對，它只是拿這個值套進各功能。只要從頭到尾用同一種量法，量到 240 就一直用 240。</p>
+    </div>
+    <div class="box">
+      <h3>術語對照</h3>
+      <div class="kv">
+        <div><dt>加工平台 Z</dt><dd>承載工件、會上下移動的平台高度（畫面上是「Z 數值」）</dd></div>
+        <div><dt>聚焦軸</dt><dd>振鏡內的聚焦鏡片，用來微調焦距</dd></div>
+        <div><dt>Z0／中立位置</dt><dd>振鏡出廠設計的焦平面，所有校正的基準</dd></div>
+        <div><dt>焦距高度</dt><dd>落焦時，加工平台面到振鏡量測基準的距離</dd></div>
+        <div><dt>K 值</dt><dd>放縮比例，1/16 級距，只能下拉選</dd></div>
+        <div><dt>S 值</dt><dd>多層校正每一層的高度像素值</dd></div>
+      </div>
+    </div>
+    <div class="box">
+      <h3>這一頁是版面示範</h3>
+      <p>光路、試刻痕跡、對焦指示都是示意，沒有接機。截圖是實機畫面，但數值不是實測值。實機請以目視試刻痕跡為準。</p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ══ 步驟表 ══ */
+  const STEPS = [
+    { id: '00-0', label: '全貌',  task: '先看懂整段在做什麼' },
+    { id: '00-1', label: '入口',  task: '選項 → 掃描頭 → 鏡頭管理員' },
+    { id: '00-2', label: '校正法', task: '公式法係數不要動' },
+    { id: '00-3', label: 'K 值',  task: '照視窗左邊的步驟 1～4' },
+    { id: '01-1', label: '測焦點', task: '任務：讓中心點對到最亮' },
+    { id: '01-2', label: 'Z0',    task: '任務：確認焦平面' },
+    { id: '01-3', label: '焦距高度', task: '任務：量測並填入' },
+  ];
+  const FOCUS_FIRST = 4;                 // 第 4 段之後共用光路面板
+
+  /* ══ 示範參數（教學示例值，非實機係數）══ */
+  const CFG = { zMin: 239, zMax: 252, zStart: 250.00, focal: 245.00, near: 0.60, hit: 0.15, jog: [0.01, 0.1, 1] };
+  const G = { y0: 92, scale: 12, cx: 150, apexHalf: 30 };
+  const yOf = (z) => G.y0 + (z - CFG.zMin) * G.scale;
+  const yFocal = yOf(CFG.focal);
+  const slope = G.apexHalf / (yFocal - G.y0);
+
+  const S = {
+    step: 0, z: CFG.zStart, jogIdx: 2, engraving: false, everEngraved: false,
+    z0: null, measured: null, markQ: null, markD: 0, done: false, mapOpen: null,
+  };
+
+  const $ = (s) => document.querySelector(s);
+  const $$ = (s) => Array.prototype.slice.call(document.querySelectorAll(s));
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const mm = (v, n) => (+v).toFixed(n === undefined ? 2 : n);
+  const liveQ = () => { const d = Math.abs(S.z - CFG.focal); return { d: d, q: clamp(1 - d / 3, 0, 1) }; };
+  const signed = (d) => (d < 0.005 ? '0.00' : (S.z > CFG.focal ? '+' : '−') + mm(d));
+
+  /* ══ 進度條 ══ */
+  function buildProg() {
+    $('#prog').innerHTML = STEPS.map((s, i) =>
+      '<button data-i="' + i + '"><i></i><span>' + s.label + '</span></button>').join('');
+    $('#prog').addEventListener('click', (e) => {
+      const b = e.target.closest('button[data-i]');
+      if (!b) return;
+      const i = +b.dataset.i;
+      if (i < S.step || S.done) go(i);
+    });
+  }
+  function paintProg() {
+    $$('#prog button').forEach((b, i) => {
+      b.dataset.st = i === S.step ? 'now' : (i < S.step ? 'done' : 'todo');
+    });
+  }
+
+  /* ══ 切換步驟 ══ */
+  function go(i) {
+    S.step = clamp(i, 0, STEPS.length - 1);
+    if (S.step < FOCUS_FIRST) S.engraving = false;
+    render();
+  }
+
+  /* ══ 光路側視 ══ */
+  function drawScene() {
+    const yp = yOf(S.z);
+    let pts;
+    if (yp >= yFocal) {
+      const sh = (yp - yFocal) * slope;
+      pts = [[G.cx - G.apexHalf, G.y0], [G.cx, yFocal], [G.cx + sh, yp], [G.cx - sh, yp]];
+    } else {
+      const sh = (yFocal - yp) * slope;
+      pts = [[G.cx - G.apexHalf, G.y0], [G.cx - sh, yp], [G.cx + sh, yp]];
+    }
+    $('#beam').setAttribute('points', pts.map((p) => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' '));
+    const base = $('#base');
+    base.setAttribute('y', (yp + 10).toFixed(1));
+    base.setAttribute('height', Math.max(0, 300 - (yp + 10)).toFixed(1));
+    $('#platform').setAttribute('y', yp.toFixed(1));
+    $('#material').setAttribute('y', (yp - 4).toFixed(1));
+    $('#platLabel').setAttribute('y', (yp + 8).toFixed(1));
+    const mid = (G.y0 + yp) / 2;
+    $('#dimLine').setAttribute('y2', yp.toFixed(1));
+    const t2 = $('#dimT2');
+    t2.setAttribute('y1', yp.toFixed(1));
+    t2.setAttribute('y2', yp.toFixed(1));
+    const brk = $('#dimBreak');
+    brk.setAttribute('transform', 'translate(0,' + mid.toFixed(1) + ')');
+    const b1 = brk.children[0], b2 = brk.children[1];
+    b1.setAttribute('x1', 22); b1.setAttribute('y1', -4); b1.setAttribute('x2', 30); b1.setAttribute('y2', 4);
+    b2.setAttribute('x1', 22); b2.setAttribute('y1', 4); b2.setAttribute('x2', 30); b2.setAttribute('y2', -4);
+    const dt = $('#dimText');
+    dt.setAttribute('y', mid.toFixed(1));
+    dt.setAttribute('transform', 'rotate(-90 15 ' + mid.toFixed(1) + ')');
+    dt.textContent = mm(S.z, 1);
+    $('#focalGroup').setAttribute('opacity', S.step >= FOCUS_FIRST + 1 ? '1' : '0');
+  }
+
+  /* ══ 材料試刻 ══ */
+  const cv = $('#mark'), ctx = cv.getContext('2d');
+  let cvW = 118, cvH = 88, needMark = true;
+  function fitCanvas() {
+    const r = cv.getBoundingClientRect();
+    if (!r.width || !r.height) return false;
+    cvW = r.width; cvH = r.height;
+    const dpr = Math.min(window.devicePixelRatio || 1, 3);
+    const w = Math.round(cvW * dpr), h = Math.round(cvH * dpr);
+    if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return true;
+  }
+  function hatch(x0, y0, side, n, gap, lw) {
+    ctx.lineWidth = lw; ctx.beginPath();
+    for (let i = 1; i <= n; i++) {
+      const y = y0 + (i - 0.5) * gap;
+      ctx.moveTo(x0 + 0.5, y); ctx.lineTo(x0 + side - 0.5, y);
+    }
+    ctx.stroke();
+  }
+  function drawMark(t) {
+    if (!fitCanvas()) return;
+    ctx.clearRect(0, 0, cvW, cvH);
+    const g = ctx.createRadialGradient(cvW / 2, cvH / 2, 2, cvW / 2, cvH / 2, Math.max(cvW, cvH) * 0.75);
+    g.addColorStop(0, '#24262b'); g.addColorStop(1, '#0b0c0e');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, cvW, cvH);
+    ctx.strokeStyle = 'rgba(255,255,255,.10)'; ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(cvW / 2, 5); ctx.lineTo(cvW / 2, cvH - 5);
+    ctx.moveTo(5, cvH / 2); ctx.lineTo(cvW - 5, cvH / 2);
+    ctx.stroke();
+    if (S.markQ === null) {
+      ctx.fillStyle = 'rgba(255,255,255,.30)'; ctx.font = '10px -apple-system,sans-serif';
+      ctx.textAlign = 'center'; ctx.fillText('尚未試刻', cvW / 2, cvH / 2 + 3.5); return;
+    }
+    const q = S.markQ, d = Math.min(S.markD, 3);
+    const side = Math.min(cvW, cvH) * 0.30 * (1 + d * 0.42);
+    const n = 9, gap = side / n;
+    const x0 = cvW / 2 - side / 2, y0 = cvH / 2 - side / 2;
+    const flick = S.engraving ? 1 + Math.sin(t / 130) * 0.05 : 1;
+    const alpha = clamp((0.16 + 0.78 * q) * flick, 0.1, 1);
+    const lw = 1 + d * 1.5;
+    if (q > 0.30) {
+      ctx.save(); ctx.globalAlpha = (q - 0.30) * 0.55;
+      ctx.strokeStyle = '#ffe9b8'; hatch(x0, y0, side, n, gap, lw + 3.5); ctx.restore();
+    }
+    ctx.strokeStyle = 'rgba(255,238,203,' + alpha.toFixed(3) + ')';
+    hatch(x0, y0, side, n, gap, lw);
+    ctx.strokeStyle = 'rgba(255,255,255,.14)'; ctx.lineWidth = 1;
+    ctx.strokeRect(x0, y0, side, side);
+  }
+
+  /* ══ 文案 ══ */
+  function hintFor() {
+    if (S.step === 0) return '點上面任何一個階段，看它在做什麼。<strong>橘色標籤那個就是我們現在要做的。</strong>';
+    if (S.step === 1) return '關鍵只有一個：左邊要選 <strong>掃描頭</strong>，不是最上面的「系統」。選錯就看右邊一片空白。';
+    if (S.step === 2) return '這一頁<strong>選了就固定</strong>，之後要改只能重新新增鏡頭。先確認是格點法再按確認。';
+    if (S.step === 3) return '先給一個初值（0.5），等中立位置落焦、量完全幅面中心線，再回來確認要不要加大。';
+    if (S.step === 4) {
+      const d = liveQ().d;
+      if (!S.everEngraved) return '先按下面的 <strong>開始連續雕刻</strong>。雷射會一直打在中心點，接著用 −／＋ 移動 Z，一邊看痕跡的變化。';
+      if (!S.engraving) return '已停止雕刻，痕跡留在材料上。按下面的按鈕記下這個位置。';
+      if (d > CFG.near) return '還在離焦（示範：' + signed(d) + ' mm）。先切 <strong>1 mm</strong> 大格移動，接近了再換小格。';
+      if (d > CFG.hit) return '快到了。切 <strong>0.1</strong> 或 <strong>0.01 mm</strong>，一格一格微調。';
+      return '<strong>就是這裡。</strong>痕跡最亮、最清楚的位置就是落焦，按下面的按鈕停止雕刻。';
+    }
+    if (S.step === 5) {
+      const d = S.z0 === null ? 0 : Math.abs(S.z0 - CFG.focal);
+      const warn = d > CFG.near
+        ? '<div class="warn">剛才停的位置離焦 ' + mm(d, 1) + ' mm（示範值），痕跡不是最亮的。可以按「← 重新對焦」再試一次。</div>' : '';
+      return '落焦那一刻的焦平面，就是振鏡出廠設計的 <strong>Z0（中立位置）</strong>。之後的 2D 尺寸校正、多層校正，都以它為基準。' + warn;
+    }
+    return '拿尺或高度規，從 <strong>加工平台面</strong> 量到 <strong>振鏡量測基準</strong>，填進視窗的「請輸入焦距高度」。量到多少填多少。';
+  }
+
+  /* ══ 控制區（依步驟產生）══ */
+  function buildControls() {
+    const box = $('#controls');
+    if (S.step === 4) {
+      box.innerHTML =
+        '<div class="ctlrow"><span>加工平台 Z（畫面「Z 數值」）</span><output id="zOut">' + mm(S.z) + '<em>mm</em></output></div>' +
+        '<input id="zslider" type="range" min="' + CFG.zMin + '" max="' + CFG.zMax + '" step="0.01" value="' + S.z + '" aria-label="Z 數值">' +
+        '<div class="jogrow"><button id="zUp" aria-label="Z 值減小，平台靠近振鏡">−</button>' +
+        '<div class="joggrid" id="joggrid">' + CFG.jog.map((v, i) => '<button data-i="' + i + '"><small>每次</small>' + v + '</button>').join('') + '</div>' +
+        '<button id="zDown" aria-label="Z 值增大，平台遠離振鏡">＋</button></div>';
+      $('#zDown').onclick = () => jog(1);
+      $('#zUp').onclick = () => jog(-1);
+      $('#zslider').oninput = (e) => { S.z = +(+e.target.value).toFixed(2); render(); };
+      $('#joggrid').addEventListener('click', (e) => {
+        const b = e.target.closest('button[data-i]'); if (!b) return;
+        S.jogIdx = +b.dataset.i; render();
+      });
+    } else if (S.step === 5) {
+      box.innerHTML = '<div class="lockrow"><i>✓</i><span>Z0 中立位置（已鎖定）</span><b>' + mm(S.z0 === null ? CFG.focal : S.z0) + ' mm</b></div>';
+    } else if (S.step === 6) {
+      box.innerHTML =
+        '<div class="ctlrow"><span>實測焦距高度</span></div>' +
+        '<div class="field"><button id="fMinus" aria-label="減 1">−</button>' +
+        '<input id="focalInput" type="number" inputmode="decimal" step="0.1" value="240.0" aria-label="實測焦距高度">' +
+        '<button id="fPlus" aria-label="加 1">＋</button></div>' +
+        '<div class="chips" id="fchips"><button data-v="240">量到 240</button><button data-v="245">245</button><button data-v="248">量到 248</button></div>' +
+        '<div class="zref">軟體 Z 讀值 ' + mm(S.z0 === null ? CFG.focal : S.z0) + ' mm</div>';
+      const fin = $('#focalInput');
+      const bump = (dv) => { fin.value = Math.max(0, (+fin.value || 0) + dv).toFixed(1); };
+      $('#fMinus').onclick = () => bump(-1);
+      $('#fPlus').onclick = () => bump(1);
+      $('#fchips').addEventListener('click', (e) => {
+        const b = e.target.closest('button[data-v]'); if (!b) return;
+        fin.value = (+b.dataset.v).toFixed(1);
+        $$('#fchips button').forEach((x) => x.classList.toggle('on', x === b));
+      });
+    } else {
+      box.innerHTML = '';
+    }
+  }
+
+  /* ══ 主畫面 ══ */
+  function render() {
+    $$('.scene').forEach((el) => {
+      const i = +el.dataset.i;
+      el.classList.toggle('on', i === 0 ? S.step === 0 : (i === S.step || (i === 4 && S.step >= 4)));
+    });
+
+    if (S.step >= FOCUS_FIRST) {
+      const id = STEPS[S.step].id;
+      $('#optStep').textContent = id + '　' + ({ 4: '測焦點', 5: '確認 Z0', 6: '填入焦距高度' })[S.step];
+      $('#optTask').textContent = STEPS[S.step].task;
+      const { d, q } = liveQ();
+      if (S.step === 4) {
+        $('#roMain').textContent = mm(S.z) + ' mm';
+        $('#roSub').textContent = S.markQ === null ? 'Z 數值' : '離焦 ' + signed(d) + ' mm';
+      } else {
+        $('#roMain').textContent = 'Z0 ＝ ' + mm(S.z0 === null ? CFG.focal : S.z0) + ' mm';
+        $('#roSub').textContent = S.step === 5 ? '就是你剛對到的位置' : '中立位置（已鎖定）';
+      }
+      const shown = S.markQ === null ? null : (S.engraving ? q : S.markQ);
+      $('#qbar').style.width = (shown === null ? 0 : Math.round(shown * 100)) + '%';
+      $('#qval').textContent = shown === null ? '—' : Math.round(shown * 100) + '%';
+      $('#matNote').innerHTML = S.markQ === null
+        ? '中心點試刻區。<strong>黑紙或金屬片</strong>上看痕跡亮不亮，是判斷落焦的依據。'
+        : (S.engraving ? '試刻中——<strong>痕跡越亮、越清楚，就越接近落焦。</strong>' : '<strong>已停止試刻</strong>，痕跡留在材料上。');
+      drawScene();
+    }
+
+    buildControls();
+    if (S.step === 4) $$('#joggrid button').forEach((b, i) => b.setAttribute('aria-pressed', i === S.jogIdx ? 'true' : 'false'));
+
+    $('#hint').innerHTML = hintFor();
+    const cta = $('#cta'), cta2 = $('#cta2');
+    cta.classList.remove('stop');
+    cta2.classList.add('hidden');
+    if (S.step === 4) {
+      if (S.engraving) { cta.textContent = '■ 停止雕刻，記下這個位置'; cta.classList.add('stop'); }
+      else { cta.textContent = '▶ 開始連續雕刻'; }
+    } else if (S.step === 5) {
+      cta.textContent = '用這個 Z0 繼續 →';
+      cta2.classList.remove('hidden'); cta2.textContent = '← 重新對焦';
+    } else if (S.step === 6) {
+      cta.textContent = S.done ? '重新示範一次' : '寫入並完成這一段';
+    } else {
+      cta.textContent = S.step === 0 ? '知道了，看下一步 →' : '下一步 →';
+    }
+
+    paintProg();
+    needMark = true;
+  }
+
+  /* ══ 動作 ══ */
+  function jog(dir) {
+    if (S.step !== 4) return;
+    S.z = clamp(+(S.z + dir * CFG.jog[S.jogIdx]).toFixed(2), CFG.zMin, CFG.zMax);
+    render();
+  }
+  function stopEngrave() {
+    S.engraving = false;
+    const { d, q } = liveQ();
+    S.markD = d; S.markQ = q; S.z0 = S.z;
+    go(5);
+  }
+
+  $('#cta').onclick = () => {
+    if (S.step === 4) {
+      if (S.engraving) { stopEngrave(); return; }
+      S.engraving = true; S.everEngraved = true;
+      const { d, q } = liveQ(); S.markD = d; S.markQ = q; render(); return;
+    }
+    if (S.step === 5) { go(6); return; }
+    if (S.step === 6) {
+      if (S.done) { resetAll(); return; }
+      S.measured = +$('#focalInput').value || 0;
+      S.done = true; showDone(); return;
+    }
+    go(S.step + 1);
+  };
+  $('#cta2').onclick = () => {
+    S.done = false; S.everEngraved = false; S.markQ = null; S.markD = 0;
+    S.z0 = null; S.z = CFG.zStart; S.engraving = false; go(4);
+  };
+
+  /* ══ 00-0 階段展開 ══ */
+  $('#prog').insertAdjacentHTML('afterend', '');
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('.mrow>button');
+    if (!b) return;
+    b.parentElement.classList.toggle('open');
+  });
+
+  /* ══ 完成 ══ */
+  function showDone() {
+    const z0 = S.z0 === null ? CFG.focal : S.z0;
+    $('#sumZ0').textContent = mm(z0) + ' mm';
+    $('#sumFocal').textContent = mm(S.measured, 1) + ' mm';
+    $('#sumTips').innerHTML = '軟體 Z 讀值 ' + mm(z0) + ' mm／實測 ' + mm(S.measured, 1) +
+      ' mm——兩個數字本來就不一定會相同，軟體只是拿實測值套進各功能。重點是<b>從頭到尾用同一種量法</b>；這個值之後會被 2D 尺寸校正與多層校正沿用。';
+    $('#doneVeil').hidden = false;
+  }
+  $('#doneNext').onclick = resetAll;
+  function resetAll() {
+    $('#doneVeil').hidden = true;
+    S.step = 0; S.z = CFG.zStart; S.engraving = false; S.everEngraved = false;
+    S.z0 = null; S.measured = null; S.markQ = null; S.markD = 0; S.done = false;
+    render();
+  }
+
+  /* ══ 說明 ══ */
+  const openWhy = () => { $('#whySheet').hidden = false; $('#whySheet').scrollTop = 0; };
+  $('#whyBtn').onclick = openWhy;
+  $('#whyClose').onclick = () => { $('#whySheet').hidden = true; };
+
+  /* ══ 起始頁 / 跳段 ══ */
+  $('#startGo').onclick = () => { $('#startVeil').hidden = true; };
+  function applyHash() {
+    const m = /^#s([0-6])$/.exec(location.hash || '');
+    if (!m) return;
+    $('#startVeil').hidden = true;
+    const i = +m[1];
+    if (i >= 4) { S.markD = 0; S.markQ = 1; S.everEngraved = true; S.z = CFG.focal; S.z0 = CFG.focal; }
+    go(i);
+  }
+
+  /* ══ 尺寸 / 動畫 ══ */
+  function fitHeight() {
+    const vv = window.visualViewport;
+    document.documentElement.style.setProperty('--app-h', Math.round((vv && vv.height) || window.innerHeight) + 'px');
+  }
+  window.addEventListener('resize', () => { fitHeight(); render(); });
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', fitHeight);
+
+  let last = 0;
+  function loop(t) {
+    if (S.engraving) {
+      const { d, q } = liveQ();
+      S.markD = d; S.markQ = q;
+      $('#qbar').style.width = Math.round(q * 100) + '%';
+      $('#qval').textContent = Math.round(q * 100) + '%';
+      $('#roSub').textContent = '離焦 ' + signed(d) + ' mm';
+      const want = hintFor();
+      if ($('#hint').innerHTML !== want) $('#hint').innerHTML = want;
+      needMark = true;
+    }
+    if (needMark && t - last > 33) { last = t; needMark = false; drawMark(t); }
+    requestAnimationFrame(loop);
+  }
+
+  buildProg();
+  fitHeight();
+  render();
+  applyHash();
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
