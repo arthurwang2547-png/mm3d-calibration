@@ -22,6 +22,7 @@ const IMAGES = {
   '{{IMG_ENTRY}}': '02_newfile.jpg',    // 選項 → 鏡頭管理員 → 新增鏡頭
   '{{IMG_METHOD}}': '03_method.jpg',    // 校正檔選項：校正法
   '{{IMG_K}}': '04_kvalue.jpg',         // 格點校正：步驟 1～4
+  '{{IMG_FOCAL}}': '05_focalheight.jpg', // 校正聚焦點：中立位置校正（Z 數值拉桿在這裡）
 };
 
 function dataURI(file) {
