@@ -108,13 +108,25 @@ button:disabled{opacity:.45;cursor:default}
 .heightrow b{margin-left:auto;font-size:22px;color:var(--primary);font-variant-numeric:tabular-nums;letter-spacing:-.5px}
 .heightrow button{height:34px;font-size:11.5px;padding:0 11px;flex:none}
 
-/* ── 值拉桿彈出（點欄位→拉桿→放開載入）────────────────── */
-.vpop{position:fixed;left:0;right:0;bottom:0;z-index:60;background:#fff;border-top:1px solid #d3e0e9;box-shadow:0 -10px 30px #17324a1f;padding:12px 14px calc(14px + env(safe-area-inset-bottom));display:grid;gap:8px}
+/* ── 值拉桿：貼在被點的欄位旁邊（不是底部彈出）────────── */
+.vpop{position:fixed;z-index:60;background:#fff;border:1px solid #9dc3e6;border-radius:12px;box-shadow:0 12px 34px #17324a33;padding:9px 12px 11px;display:grid;gap:6px;width:236px;max-width:calc(100vw - 20px)}
 .vpop[hidden]{display:none!important}
-.vpop .vh{display:flex;align-items:baseline;gap:8px;font-size:11.5px;color:#5d7d8e}
-.vpop .vh b{margin-left:auto;font-size:20px;color:var(--primary);font-variant-numeric:tabular-nums}
-.vpop input[type=range]{width:100%;height:34px;accent-color:var(--teal);margin:0}
-.vpop .vh2{display:flex;justify-content:space-between;font-size:9.5px;color:#a4b4bf}
+.vpop::after{content:'';position:absolute;left:var(--ax,50%);bottom:-7.5px;width:14px;height:14px;background:#fff;border-right:1px solid #9dc3e6;border-bottom:1px solid #9dc3e6;transform:translateX(-50%) rotate(45deg)}
+.vpop.below::after{bottom:auto;top:-7.5px;border:0;border-left:1px solid #9dc3e6;border-top:1px solid #9dc3e6}
+.vpop .vh{display:flex;align-items:baseline;gap:8px;font-size:10.5px;color:#5d7d8e}
+.vpop .vh b{margin-left:auto;font-size:19px;color:var(--primary);font-variant-numeric:tabular-nums}
+.vpop input[type=range]{width:100%;height:30px;accent-color:var(--teal);margin:0}
+.vpop .vh2{display:flex;justify-content:space-between;font-size:9px;color:#a4b4bf}
+
+/* ── 連續雕刻時彈出的黑紙試刻子畫面 ────────────────────── */
+.inset{position:absolute;z-index:6;left:6%;top:10%;width:33%;background:#12161a;border:1px solid #3c5a70;border-radius:8px;padding:5px;box-shadow:0 8px 20px #0006;line-height:0}
+.inset[hidden]{display:none!important}
+.inset canvas{display:block;width:100%;height:auto;border-radius:5px}
+.inset small{display:block;font-size:8.5px;line-height:12px;color:#cfe0ea;text-align:center;margin-top:3px;letter-spacing:.2px}
+
+/* 微調單位：教練到這一步時加脈動，讓人知道要點它 */
+.ov-unit.tap{animation:utap 1.35s ease-out infinite}
+@keyframes utap{0%,100%{box-shadow:0 0 0 1.5px #1674d6,0 0 0 0 #ffab1f00}45%{box-shadow:0 0 0 2px #ffab1f,0 0 0 9px #ffab1f22}}
 
 /* ── 00-0 全貌 ─────────────────────────────────────────── */
 .mapintro{font-size:12px;line-height:1.6;color:#3d5c72;background:#eff6fd;border:1px solid #d5e6f7;border-radius:9px;padding:9px 10px}
@@ -248,6 +260,11 @@ button:disabled{opacity:.45;cursor:default}
         <div class="coachwrap" id="cw3"><img src="{{IMG_K}}" alt="格點校正視窗：步驟 1～4"><span class="spot" id="sp3"></span></div>
         <div class="tip"><div class="h"><span class="n" id="tn3">1</span><span class="step" id="ts3">1 / 4</span></div><p id="tx3"></p></div>
         <div class="callout info">用格點法時，K 最大選到 <b>0.9375</b>（含）以下。這一步只是先給初值——真正要準，是等中立位置落焦之後，量全幅面中心線再回來確認。</div>
+        <div class="callout" style="background:#fff;border-color:#dbe7ef;color:#42607a">
+          <b>K 值怎麼挑（等量到中心線之後）</b><br>
+          ① 先用 0.5 刻一次 → ② 量較短的那條中心線 → ③ 換算出 K = 1 時的最大長度 → ④ 用目標範圍 ÷ 最大值 → ⑤ 挑選單裡最接近又不超過的級距。<br>
+          量到的中心線比雕刻範圍短，就回上一步、重置校正檔、換更大的 K 重做。
+        </div>
       </div>
     </div>
   </section>
@@ -300,6 +317,11 @@ button:disabled{opacity:.45;cursor:default}
           <div class="ov ov-hit" id="ovHit" style="left:11.5%;top:84.3%;width:28.5%;height:5.2%"><i></i></div>
           <div class="ov ov-unit" id="ovUnit" style="left:47.2%;top:90.6%;width:6.4%;height:3.8%">1</div>
           <div class="ov ov-eng" id="ovEng" style="left:86.2%;top:21.2%;width:11.2%;height:6.2%"></div>
+          <!-- 按下連續雕刻後才出現：黑紙試刻子畫面 -->
+          <div class="inset" id="matInset" hidden>
+            <canvas id="mark" width="240" height="168"></canvas>
+            <small>黑紙上的試刻痕跡</small>
+          </div>
         </div>
         <div class="qm"><span>示範對焦</span><div class="qbar"><i id="qbar"></i></div><b id="qval">—</b></div>
         <div class="tip" id="tip4"><div class="h"><span class="n" id="tn4">1</span><span class="step" id="ts4">1 / 3</span></div><p id="tx4"></p></div>
@@ -450,15 +472,15 @@ button:disabled{opacity:.45;cursor:default}
       { box: [21.0, 84.0, 24, 13], t: '按 <b>「確認」</b> 才會進到下一頁。按下去之後就不能改了。' },
     ],
     3: [
-      { box: [4.0, 8.5, 40, 8], t: '<b>步驟 1 放縮比例 K</b>：只能下拉選，不能打字。級距 1/16，<b>先用 0.5</b>。' },
-      { box: [85.0, 17.0, 14, 9], t: '<b>步驟 2 執行試刻</b>：按右邊的「試刻」，讓它刻一組框。' },
-      { box: [3.0, 31.0, 40, 9], t: '<b>步驟 3 輸入較短的中心線</b>：量刻出來的框，把比較短那一條的長度填進去（公厘）。' },
-      { box: [3.0, 68.0, 40, 9], t: '<b>步驟 4 輸入校正值</b>：軟體算好之後填回去。' },
+      { box: [6.0, 17.0, 26, 10.5], t: '<b>步驟 1 放縮比例 K</b>：只能下拉選，不能打字。級距 1/16，<b>先用 0.5</b>。' },
+      { box: [86.0, 19.0, 9.5, 8], t: '<b>步驟 2 執行試刻</b>：按右邊的「試刻」，讓它刻一組框。' },
+      { box: [14.0, 57.0, 24, 8], t: '<b>步驟 3 輸入較短的中心線</b>：量刻出來的框，把比較短那一條的長度填進去（公厘）。' },
+      { box: [14.0, 71.0, 19, 8], t: '<b>步驟 4 輸入校正值</b>：軟體算好之後填回去。' },
     ],
     4: [
-      { box: [45.5, 89.0, 9.5, 6.6], t: '先看 <b>「微調單位」</b>。它決定 Z 每動一格是多少——現在是 1。點它可以改。' },
-      { box: [84.5, 20.4, 13.5, 7.6], t: '按一下 <b>「連續雕刻」</b>，讓雷射開始打中心點。它會一直打，直到你再按一次。' },
-      { box: [9.5, 82.6, 32.5, 8.4], t: '接著<b>拖左邊這條「Z 數值」滑桿</b>。拖的時候盯住中心點，越亮就表示越接近落焦。' },
+      { box: [45.5, 89.0, 9.5, 6.6], t: '點一下 <b>「微調單位」</b>——拉桿會直接出現在這個欄位旁邊，拉到要的格數放開就載入。它決定 Z 每動一格是多少。' },
+      { box: [84.5, 20.4, 13.5, 7.6], t: '按一下 <b>「連續雕刻」</b>，讓雷射開始打中心點。右邊會跳出黑紙上的試刻痕跡。' },
+      { box: [9.5, 82.6, 32.5, 8.4], t: '接著<b>拖左邊這條「Z 數值」滑桿</b>。一邊拖，一邊看右邊黑紙那塊由暗變亮。' },
       { box: [84.5, 20.4, 13.5, 7.6], t: '對到最亮就<b>再按一次「連續雕刻」</b>停下來。停下來的焦平面就是 Z0。' },
     ],
   };
@@ -535,6 +557,57 @@ button:disabled{opacity:.45;cursor:default}
     if (s) s.textContent = (S.coach + 1) + ' / ' + list.length;
   }
 
+  /* ── 黑紙試刻子畫面 ── */
+  const mk = $('#mark'), mctx = mk.getContext('2d');
+  let mw = 0, mh = 0, needMark = true;
+  function hatch(x0, y0, side, n, gap, lw) {
+    mctx.lineWidth = lw; mctx.beginPath();
+    for (let i = 1; i <= n; i++) {
+      const y = y0 + (i - 0.5) * gap;
+      mctx.moveTo(x0 + 0.5, y); mctx.lineTo(x0 + side - 0.5, y);
+    }
+    mctx.stroke();
+  }
+  function drawMark(t) {
+    const r = mk.getBoundingClientRect();
+    if (!r.width || !r.height) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 3);
+    const w = Math.round(r.width * dpr), h = Math.round(r.height * dpr);
+    if (mk.width !== w || mk.height !== h) { mk.width = w; mk.height = h; }
+    mw = r.width; mh = r.height;
+    mctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const g = mctx.createRadialGradient(mw / 2, mh / 2, 2, mw / 2, mh / 2, Math.max(mw, mh) * 0.75);
+    g.addColorStop(0, '#232629'); g.addColorStop(1, '#0a0b0d');
+    mctx.fillStyle = g; mctx.fillRect(0, 0, mw, mh);
+    mctx.strokeStyle = 'rgba(255,255,255,.09)'; mctx.lineWidth = 1;
+    mctx.beginPath();
+    mctx.moveTo(mw / 2, 4); mctx.lineTo(mw / 2, mh - 4);
+    mctx.moveTo(4, mh / 2); mctx.lineTo(mw - 4, mh / 2);
+    mctx.stroke();
+    if (S.markQ === null) {
+      mctx.fillStyle = 'rgba(255,255,255,.3)';
+      mctx.font = '9px -apple-system,sans-serif';
+      mctx.textAlign = 'center';
+      mctx.fillText('尚未試刻', mw / 2, mh / 2 + 3);
+      return;
+    }
+    const q = S.markQ, d = Math.min(S.markD, 3);
+    const side = Math.min(mw, mh) * 0.34 * (1 + d * 0.42);
+    const n = 9, gap = side / n;
+    const x0 = mw / 2 - side / 2, y0 = mh / 2 - side / 2;
+    const flick = S.engraving ? 1 + Math.sin(t / 130) * 0.05 : 1;
+    const alpha = clamp((0.16 + 0.78 * q) * flick, 0.1, 1);
+    const lw = 1 + d * 1.4;
+    if (q > 0.3) {
+      mctx.save(); mctx.globalAlpha = (q - 0.3) * 0.55;
+      mctx.strokeStyle = '#ffe9b8'; hatch(x0, y0, side, n, gap, lw + 3); mctx.restore();
+    }
+    mctx.strokeStyle = 'rgba(255,238,203,' + alpha.toFixed(3) + ')';
+    hatch(x0, y0, side, n, gap, lw);
+    mctx.strokeStyle = 'rgba(255,255,255,.13)'; mctx.lineWidth = 1;
+    mctx.strokeRect(x0, y0, side, side);
+  }
+
   /* ── 互動層（01-1）── */
   function paintLive() {
     if (S.step < FOCUS_FIRST) return;
@@ -548,6 +621,9 @@ button:disabled{opacity:.45;cursor:default}
     $('#qbar').style.width = Math.round(shown * 100) + '%';
     $('#qval').textContent = S.markQ === null ? '—' : Math.round(shown * 100) + '%';
     $('#ovEng').classList.toggle('on', S.engraving);
+    /* 按下連續雕刻（或已經有痕跡）才顯示黑紙子畫面 */
+    $('#matInset').hidden = !(S.engraving || S.markQ !== null);
+    needMark = true;
     $('#roMain').textContent = S.step === 4 ? (mm(S.z) + ' mm') : ('Z0 ＝ ' + mm(S.z0 === null ? CFG.focal : S.z0) + ' mm');
     $('#roSub').textContent = S.step === 4
       ? (S.markQ === null ? 'Z 數值' : '離焦 ' + signed(d) + ' mm')
@@ -572,16 +648,16 @@ button:disabled{opacity:.45;cursor:default}
 
     $('#ovEng').addEventListener('click', () => toggleEngrave());
     $('#ovUnit').addEventListener('click', () => openValueSlider({
-      label: '微調單位（Z 每動一格）', min: 1, max: 100, step: 1, value: S.unit,
+      anchor: $('#ovUnit'), label: '微調單位（Z 每動一格）', min: 1, max: 100, step: 1, value: S.unit,
       onCommit: (v) => { S.unit = v; paintLive(); },
     }));
     $('#hBtn').addEventListener('click', () => openValueSlider({
-      label: '焦距高度（實測）', min: 200, max: 300, step: 0.5, value: S.measured === null ? 240 : S.measured,
+      anchor: $('#hBtn'), label: '焦距高度（實測）', min: 200, max: 300, step: 0.5, value: S.measured === null ? 240 : S.measured,
       onCommit: (v) => { S.measured = v; $('#hVal').textContent = mm(v, 1) + ' mm'; },
     }));
   }
 
-  /* ── 值拉桿（點欄位 → 拉桿 → 放開載入）── */
+  /* ── 值拉桿：貼在被點的欄位旁邊，放開即載入 ── */
   let vpopCb = null;
   function openValueSlider(o) {
     const pop = $('#vpop'), r = $('#vRange');
@@ -592,6 +668,19 @@ button:disabled{opacity:.45;cursor:default}
     const dec = o.step < 1 ? 1 : 0;
     $('#vNow').textContent = (+r.value).toFixed(dec);
     pop.hidden = false;
+    pop.classList.remove('below');
+    /* 貼齊被點的欄位：優先放上方，空間不夠改放下方，箭頭對準欄位中心 */
+    const a = o.anchor && o.anchor.getBoundingClientRect ? o.anchor.getBoundingClientRect() : null;
+    const pw = pop.offsetWidth, ph = pop.offsetHeight;
+    let left = 12, top = 90;
+    if (a && a.width) {
+      left = clamp(a.left + a.width / 2 - pw / 2, 10, window.innerWidth - pw - 10);
+      const above = a.top - ph - 12;
+      if (above > 56) { top = above; } else { top = a.bottom + 12; pop.classList.add('below'); }
+      pop.style.setProperty('--ax', (a.left + a.width / 2 - left).toFixed(0) + 'px');
+    }
+    pop.style.left = left.toFixed(0) + 'px';
+    pop.style.top = top.toFixed(0) + 'px';
     vpopCb = (v) => { pop.hidden = true; vpopCb = null; o.onCommit(v); };
     r.oninput = () => { $('#vNow').textContent = (+r.value).toFixed(dec); };
     r.onchange = () => { if (vpopCb) vpopCb(+r.value); };
@@ -642,6 +731,7 @@ button:disabled{opacity:.45;cursor:default}
       $('#z0Note').style.display = S.step === 5 ? '' : 'none';
       if (S.step === 5) $('#z0Num').textContent = mm(S.z0 === null ? CFG.focal : S.z0) + ' mm';
       if (S.step === 6) $('#hVal').textContent = S.measured === null ? '—' : mm(S.measured, 1) + ' mm';
+      $('#ovUnit').classList.toggle('tap', live && S.coach === 0);
       paintLive();
       if (live) applyCoach();
     } else {
@@ -744,7 +834,8 @@ button:disabled{opacity:.45;cursor:default}
     if (!m) return;
     $('#startVeil').hidden = true;
     const i = +m[1];
-    if (i >= 4) { S.markD = 0; S.markQ = 1; S.everEngraved = true; S.z = CFG.focal; S.z0 = CFG.focal; S.measured = 240; }
+    if (i >= 5) { S.markD = 0; S.markQ = 1; S.everEngraved = true; S.z = CFG.focal; S.z0 = CFG.focal; S.measured = 240; }
+    if (i === 4) { S.z = CFG.zStart; S.markQ = null; S.markD = 0; S.z0 = null; }
     go(i);
   }
 
@@ -756,7 +847,7 @@ button:disabled{opacity:.45;cursor:default}
   window.addEventListener('resize', () => { fitHeight(); render(); });
   if (window.visualViewport) window.visualViewport.addEventListener('resize', fitHeight);
 
-  function loop() {
+  function loop(t) {
     if (S.engraving) {
       const { d, q } = liveQ();
       S.markD = d; S.markQ = q;
@@ -764,6 +855,7 @@ button:disabled{opacity:.45;cursor:default}
       const want = hintFor();
       if ($('#hint').innerHTML !== want) $('#hint').innerHTML = want;
     }
+    if (needMark) { needMark = false; drawMark(t); }
     requestAnimationFrame(loop);
   }
 
