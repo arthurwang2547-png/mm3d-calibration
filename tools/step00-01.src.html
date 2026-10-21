@@ -135,7 +135,7 @@ button:disabled{opacity:.45;cursor:default}
 .ov-hit i{transition:margin-left .06s linear}
 
 /* 01-3 放大光路圖，強調「拿尺量這一段」 */
-.diagram.big{height:min(36vh,280px)}
+.diagram.big{height:min(30vh,240px)}
 
 /* 底部按鈕隱藏時不要留空白 */
 .cta.hidden{display:none!important}
@@ -147,6 +147,20 @@ button:disabled{opacity:.45;cursor:default}
 /* 微調單位：這一步時脈動，讓人知道要點它 */
 .ov-unit.tap{animation:utap 1.35s ease-out infinite}
 @keyframes utap{0%,100%{box-shadow:0 0 0 1.5px #1674d6,0 0 0 0 #ffab1f00}45%{box-shadow:0 0 0 2px #ffab1f,0 0 0 9px #ffab1f22}}
+
+/* ── 01-3 量測：尺的兩端可以點 ── */
+.tappt{fill:#ffab1f;stroke:#fff;stroke-width:2;cursor:pointer;animation:tpulse 1.3s ease-out infinite}
+.tappt.done{fill:#0db8a3;stroke:#fff;animation:none}
+@keyframes tpulse{0%,100%{opacity:.6;stroke-width:2}50%{opacity:1;stroke-width:5}}
+#dDimText.pop{animation:dpop .5s cubic-bezier(.2,1.6,.4,1)}
+@keyframes dpop{0%{font-size:8px;opacity:.2}100%{font-size:11.5px;opacity:1}}
+
+/* 01-3 要填的那一欄：橘框閃爍 */
+.spot.blink{border-color:#ffab1f;animation:sblink .9s ease-in-out infinite}
+@keyframes sblink{0%,100%{border-color:#ffab1f;box-shadow:0 0 0 9999px rgba(10,22,34,.36)}50%{border-color:#fff3d6;box-shadow:0 0 0 9999px rgba(10,22,34,.52)}}
+
+/* 填入後的數值 */
+.ov-h{display:grid;place-items:center;background:#fff;border-radius:3px;color:#0b2f5e;font:700 11px/1 ui-monospace,monospace;font-variant-numeric:tabular-nums;box-shadow:0 0 0 1.5px #1674d6;cursor:pointer}
 
 /* ── 00-0 全貌 ─────────────────────────────────────────── */
 .mapintro{font-size:12px;line-height:1.6;color:#3d5c72;background:#eff6fd;border:1px solid #d5e6f7;border-radius:9px;padding:9px 10px}
@@ -380,6 +394,11 @@ button:disabled{opacity:.45;cursor:default}
           <text x="80" y="98" font-size="10" font-weight="700" fill="#8a5a00">拿尺量這一段</text>
           <text x="80" y="110" font-size="9" fill="#a8802f">振鏡下方 → 台面</text>
         </g>
+        <!-- 量測的兩個端點：點下去 -->
+        <g id="dTap" opacity="0">
+          <circle class="tappt" id="dTap1" cx="68" cy="72" r="6.5"/>
+          <circle class="tappt" id="dTap2" cx="68" cy="132" r="6.5"/>
+        </g>
         <!-- 加工平台（固定）＋ 材料 -->
         <rect x="120" y="128" width="100" height="4" fill="#15171a"/>
         <rect x="106" y="132" width="128" height="9" rx="2" fill="url(#gPlat)" stroke="#9db3c4" stroke-width="1"/>
@@ -402,6 +421,8 @@ button:disabled{opacity:.45;cursor:default}
         <div class="coachwrap" id="cw4">
           <img src="{{IMG_FOCAL}}" alt="校正檔：校正聚焦點（中立位置校正）">
           <span class="spot" id="sp4"></span>
+          <span class="spot blink" id="sp6" style="display:none;left:18.6%;top:77.4%;width:12.2%;height:5.4%"></span>
+          <div class="ov ov-h" id="ovH" style="display:none;left:19%;top:77.9%;width:11%;height:4.4%">244.0</div>
           <div class="ov ov-glow" id="ovGlow" style="left:40.2%;top:38.2%;width:5.6%;height:5.4%"></div>
           <div class="ov ov-z" id="ovZ" style="left:11.3%;top:84.7%;width:10.2%;height:4.4%">—</div>
           <div class="ov ov-hit" id="ovHit" style="left:11.5%;top:84.3%;width:28.5%;height:5.2%"><i></i></div>
@@ -422,7 +443,7 @@ button:disabled{opacity:.45;cursor:default}
             <small>黑紙上的試刻痕跡</small>
           </div>
         </div>
-        <div class="qm"><span>示範對焦</span><div class="qbar"><i id="qbar"></i></div><b id="qval">—</b></div>
+        <div class="qm" id="qm"><span>示範對焦</span><div class="qbar"><i id="qbar"></i></div><b id="qval">—</b></div>
         <div class="tip" id="tip4"><div class="h"><span class="n" id="tn4">1</span><span class="step" id="ts4">1 / 3</span></div><p id="tx4"></p></div>
         <div class="heightrow" id="hrow" style="display:none">
           <div class="lb">焦距高度（實測）<em>點右邊叫出拉桿</em></div>
@@ -549,6 +570,7 @@ button:disabled{opacity:.45;cursor:default}
     step: 0, z: CFG.zStart, engraving: false, everEngraved: false,
     z0: null, measured: null, markQ: null, markD: 0, done: false,
     coach: 0, unit: 100, unitTouched: false, measuredDone: false,
+    m6phase: 0, taps: {},
   };
 
   const $ = (s) => document.querySelector(s);
@@ -609,7 +631,7 @@ button:disabled{opacity:.45;cursor:default}
     S.step = clamp(i, 0, STEPS.length - 1);
     S.coach = 0;
     if (S.step < FOCUS_FIRST) S.engraving = false;
-    if (S.step === 6) S.measuredDone = false;
+    if (S.step === 6) { S.m6phase = 0; S.taps = {}; }
     render();
   }
 
@@ -645,8 +667,9 @@ button:disabled{opacity:.45;cursor:default}
     sp.setAttribute('ry', (2.2 + (1 - q) * 3.6).toFixed(1));
     sp.setAttribute('opacity', (0.14 + q * 0.86).toFixed(2));
 
-    /* 焦距高度：固定距離，只有數字會變，不會上下跑 */
-    $('#dDimText').textContent = mm(focalH(), 1);
+    /* 焦距高度：固定距離，只有數字會變，不會上下跑；01-3 要量到才揭曉 */
+    const hideDim = (S.step === 6 && S.m6phase === 0 && S.measured === null);
+    $('#dDimText').textContent = hideDim ? '?' : mm(focalH(), 1);
   }
 
   /* ── 教練框 ── */
@@ -731,8 +754,8 @@ button:disabled{opacity:.45;cursor:default}
     $('#qbar').style.width = Math.round(shown * 100) + '%';
     $('#qval').textContent = S.markQ === null ? '—' : Math.round(shown * 100) + '%';
     $('#ovEng').classList.toggle('on', S.engraving);
-    /* 按下連續雕刻（或已經有痕跡）才顯示黑紙子畫面 */
-    $('#matInset').hidden = !(S.engraving || S.markQ !== null);
+    /* 按下連續雕刻（或已經有痕跡）才顯示黑紙子畫面，而且只在 01-1 */
+    $('#matInset').hidden = !(S.step === 4 && (S.engraving || S.markQ !== null));
     needMark = true;
     $('#roMain').textContent = S.step === 4
       ? ('Z 數值 ' + (S.z > 0 ? '+' : '') + Math.round(S.z))
@@ -784,6 +807,28 @@ button:disabled{opacity:.45;cursor:default}
     mouse.addEventListener('wheel', (ev) => { ev.preventDefault(); notch(ev.deltaY < 0 ? 1 : -1); }, { passive: false });
 
     $('#ovEng').addEventListener('click', () => toggleEngrave());
+    /* 01-3：點尺的兩端量測 → 量到才揭曉數字 */
+    const tapEnd = (n) => {
+      if (S.step !== 6 || S.m6phase !== 0) return;
+      S.taps[n] = true;
+      if (S.taps[1] && S.taps[2] && S.measured === null) {
+        S.measured = 244.0;
+        S.m6phase = 1;
+        const d = $('#dDimText');
+        d.classList.remove('pop'); void d.offsetWidth; d.classList.add('pop');
+      }
+      render();
+    };
+    $('#dTap1').addEventListener('click', () => tapEnd(1));
+    $('#dTap2').addEventListener('click', () => tapEnd(2));
+    /* 01-3：點橘框那一欄填數值 */
+    $('#ovH').addEventListener('click', () => {
+      if (S.step !== 6 || S.m6phase !== 1) return;
+      openValueSlider({
+        anchor: $('#ovH'), label: '焦距高度（量到多少填多少）', min: 200, max: 300, step: 0.5, value: focalH(),
+        onCommit: (v) => { S.measured = v; S.m6phase = 2; render(); },
+      });
+    });
     $('#ovUnit').addEventListener('click', () => openValueSlider({
       anchor: $('#ovUnit'), label: '微調單位（滾一格 = 多少像素）', min: 1, max: 100, step: 1, value: S.unit,
       onCommit: (v) => { S.unit = v; S.unitTouched = true; render(); },
@@ -843,7 +888,11 @@ button:disabled{opacity:.45;cursor:default}
       const warn = d > CFG.tol * 0.6 ? '<div class="warn">剛才那個位置離焦 ' + signedPx(d) + ' px（示範值），還不是最準的。可以按「← 重新對焦」。</div>' : '';
       return '焦點剛好貼在加工平面上的那個 Z 數值，就是 <strong>Z0（中立位置）</strong>。之後的 2D 尺寸校正、多層校正，都以它為基準。' + warn;
     }
-    return '焦距高度<strong>是量出來的，不是調出來的</strong>：拿尺量平台面到振鏡基準，點「調整」拉到量到的數字、放開就載入。它只是告訴軟體平面在哪，畫面不會因此上下移動。';
+    if (S.step === 6) {
+      if (S.m6phase === 0) return '拿一支尺，從<strong>振鏡下方</strong>量到<strong>台面</strong>（光束最小那一點）。點一下尺的<strong>兩個端點</strong>。';
+      if (S.m6phase === 1) return '把上面量到的 <strong>' + mm(focalH(), 1) + ' mm</strong> 填進去——點橘框那個「請輸入焦距高度」欄位。';
+      return '這個數字<strong>是量出來的，不是調出來的</strong>。它只是告訴軟體加工平面在哪，之後每一層都從這裡算。';
+    }
   }
 
   /* ── 主畫面 ── */
@@ -864,8 +913,17 @@ button:disabled{opacity:.45;cursor:default}
       $('#ovEng').style.display = live ? '' : 'none';
       $('#tip4').style.display = live ? '' : 'none';
       $('#sp4').style.display = live ? '' : 'none';
-      $('#hrow').style.display = (S.step === 6 && S.measuredDone) ? 'flex' : 'none';
-      $('#hNote').style.display = (S.step === 6 && S.measuredDone) ? '' : 'none';
+      const m6 = S.step === 6;
+      $('#qm').style.display = (S.step === 4) ? '' : 'none';
+      $('#ovZ').style.display = (S.step === 4 || S.step === 5) ? '' : 'none';
+      $('#hrow').style.display = (m6 && S.m6phase >= 1) ? 'flex' : 'none';
+      $('#hNote').style.display = (m6 && S.m6phase >= 2) ? '' : 'none';
+      $('#sp6').style.display = (m6 && S.m6phase === 1) ? '' : 'none';
+      $('#ovH').style.display = (m6 && S.measured !== null) ? 'grid' : 'none';
+      if (m6) $('#ovH').textContent = mm(focalH(), 1);
+      $('#dTap').setAttribute('opacity', (m6 && S.m6phase === 0) ? '1' : '0');
+      $('#dTap1').classList.toggle('done', !!S.taps[1]);
+      $('#dTap2').classList.toggle('done', !!S.taps[2]);
       $('#z0Note').style.display = S.step === 5 ? '' : 'none';
       /* 01-3：放大光路圖＋尺 */
       $('#dd').closest('.diagram').classList.toggle('big', S.step === 6);
@@ -902,8 +960,7 @@ button:disabled{opacity:.45;cursor:default}
       label = '用這個 Z0 繼續 →';
       cta2.classList.remove('hidden'); cta2.textContent = '← 重新對焦';
     } else if (S.step === 6) {
-      if (!S.measuredDone) { label = '我量好了，去填數值 →'; }
-      else if (S.measured === null) { showCta = false; }
+      if (S.m6phase < 2) { showCta = false; }
       else { label = S.done ? '重新示範一次' : '寫入並完成這一段'; }
     } else if (list && S.coach < list.length - 1) {
       cta.classList.add('coach');
@@ -968,7 +1025,7 @@ button:disabled{opacity:.45;cursor:default}
     $('#doneVeil').hidden = true;
     S.step = 0; S.z = CFG.zStart; S.engraving = false; S.everEngraved = false;
     S.z0 = null; S.measured = null; S.markQ = null; S.markD = 0; S.done = false; S.coach = 0;
-    S.unit = 100; S.unitTouched = false; S.measuredDone = false;
+    S.unit = 100; S.unitTouched = false; S.measuredDone = false; S.m6phase = 0; S.taps = {};
     render();
   }
 
@@ -983,7 +1040,7 @@ button:disabled{opacity:.45;cursor:default}
     if (!m) return;
     $('#startVeil').hidden = true;
     const i = +m[1];
-    if (i >= 5) { S.markD = 0; S.markQ = 1; S.everEngraved = true; S.z = CFG.z0px; S.z0 = CFG.z0px; S.measured = 240; }
+    if (i >= 5) { S.markD = 0; S.markQ = 1; S.everEngraved = true; S.z = CFG.z0px; S.z0 = CFG.z0px; S.measured = (i === 6 ? null : 240); }
     if (i === 4) { S.z = CFG.zStart; S.markQ = null; S.markD = 0; S.z0 = null; S.unitTouched = false; }
     go(i);
   }
