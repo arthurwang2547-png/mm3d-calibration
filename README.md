@@ -6,17 +6,29 @@
 
 ## STEP 00 校正前確認（2026-11-25）
 
-按「開始教學」後先跳一張確認清單，7 項全部打勾才放行。內容依原廠
+按「開始教學」後先跳一頁確認清單，7 項都按過「我知道了」才放行。內容依原廠
 《MM3D-Plus V3.02 多層校正使用說明》整理，重點是 **Z 軸輸出方向在 V3.02 反轉**
-（Smax 32767 / Smin −32768）與 **HWConfig.exe 要啟用 Z Out Inverse**。
+（Smax 32767 / Smin −32768）與 **HWConfig.exe 要勾 Z Line Out Inverse**。
 
-7 項：版本與 Z 方向、Z Out Inverse、舊校正檔轉換、校正法維持公式法、
+7 項：版本與 Z 方向、Z Line Out Inverse、舊校正檔轉換、公式法欄位不要動、
 Zmax/Zmin 量測、Z0 放哪一層（中立位置三分法）、幅面與層數上限。
 
+每一項都有「怎麼確認」會開圖解視窗（紅框標出位置）：
+
+| 檔案 | 內容 |
+|---|---|
+| `assets/preflight/01-version.png` | 安裝檔名 `MM3D-Plus-4.00_x64.exe`，紅框標版本 |
+| `assets/preflight/02-hwconfig.png` | HWConfig UMC4，紅框標 Z Line Out Inverse |
+| `assets/preflight/03-legacy.jpg` | 原廠說明第 3 點（舊校正檔轉換） |
+| `assets/preflight/04-formula.jpg` | 新增校正檔畫面，紅叉標公式法欄位 |
+| `assets/preflight/05-zrange.jpg` | 焦距量測工具，紅框標 Z 座標 |
+| `assets/preflight/06-neutral.jpg` | 中立位置與 Zmax／Z0／Zmin 三種擺法 |
+| `assets/preflight/07-span.jpg` | 全幅面輸出與 X／Y 中心線 |
+
 - `assets/preflight.css`、`assets/preflight.js`，掛在 `index.html`，不動 14 步時間軸
+- 圖解文字（標題、圖說、步驟）都在 `preflight.js` 最上面的 `DATA`，改文案不用碰版面
 - 同一個分頁確認過就不再攔（sessionStorage）；右上角「設定 → 校正前確認」可重開
 - 要單獨把這頁給客戶：`index.html?preflight=1`
-- 詳細說明文字在 `index.html` 的 `#preflight` 區塊，改文案不用碰 JS
 
 ## 手機離線預覽（V1）
 

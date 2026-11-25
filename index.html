@@ -7,14 +7,14 @@
   <div class="pf-left">
     <div class="pf-tag">STEP 00 · BEFORE YOU START</div>
     <h1><em>校正前確認</em>多層校正開始前，先確認這 7 件事</h1>
-    <p class="pf-lead">這一頁不是教學步驟，是開工前的檢查。沒確認就做，後面的層高、焦點和尺寸會整組跟著錯，而且回溯很花時間。</p>
+    <p class="pf-lead">這一頁不是教學步驟，是開工前的檢查。每一項看完按「我知道了」，7 項都確認才進第 1 步。</p>
     <div class="pf-progress"><div class="bar"><i></i></div><div class="txt"><span>確認進度</span><b>0 / 7</b></div></div>
     <div class="pf-why"><b>為什麼要先看這一頁</b>V3.02 把 Z 軸的輸出方向反轉了。舊版的經驗直接套過來，焦點會對不到、層高會反過來。這 7 項確認完，後面的 14 步才會是對的。</div>
     <div class="pf-mini" aria-hidden="true">
       <div data-of="pf1"><i></i><b>01</b>版本與 Z 軸方向</div>
-      <div data-of="pf2"><i></i><b>02</b>Z Out Inverse</div>
+      <div data-of="pf2"><i></i><b>02</b>Z Line Out Inverse</div>
       <div data-of="pf3"><i></i><b>03</b>舊校正檔轉換</div>
-      <div data-of="pf4"><i></i><b>04</b>校正法維持公式法</div>
+      <div data-of="pf4"><i></i><b>04</b>公式法欄位不要動</div>
       <div data-of="pf5"><i></i><b>05</b>Zmax / Zmin 量測</div>
       <div data-of="pf6"><i></i><b>06</b>Z0 放哪一層</div>
       <div data-of="pf7"><i></i><b>07</b>幅面與層數</div>
@@ -22,65 +22,89 @@
     <div class="pf-cta"><button class="pf-btn" id="pf-start" disabled>先確認上面 7 項</button><div class="pf-hint" id="pf-hint">還有 7 項要確認</div><button class="pf-back" id="pf-back">回首頁</button></div>
   </div>
   <div class="pf-right">
-    <div class="pf-item">
+
+    <article class="pf-item" data-key="pf1">
       <div class="pf-num">01</div>
-      <div>
-        <div class="pf-head"><input class="pf-check" type="checkbox" id="pf1"><label class="pf-title" for="pf1">確認版本，Z 軸輸出方向已經和舊版相反<span class="pf-meta">MM3D-Plus V3.02 起</span></label></div>
+      <div class="pf-main">
+        <h3 class="pf-title">確認版本，Z 軸輸出方向已經和舊版相反</h3>
+        <p class="pf-meta">MM3D-Plus V3.02 起</p>
         <p class="pf-body">V3.02 開始，Z 軸的 S 值輸出方向與舊版相反，預設 <b>Smax = 32767、Smin = −32768</b>。拿舊版的概念設定，層高與焦點會整組顛倒。</p>
-        <details><summary>怎麼確認</summary><p>先看現場軟體版本是不是 V3.02 以上。這是為了支援 3D 工位設定與對位功能而改的，不是設定跑掉。</p></details>
+        <div class="pf-actions"><button class="pf-look" data-key="pf1">怎麼確認　▸</button><button class="pf-ack" data-key="pf1" aria-pressed="false">我知道了</button></div>
       </div>
-    </div>
-    <div class="pf-item">
+    </article>
+
+    <article class="pf-item" data-key="pf2">
       <div class="pf-num">02</div>
-      <div>
-        <div class="pf-head"><input class="pf-check" type="checkbox" id="pf2"><label class="pf-title" for="pf2">在控制卡 HWConfig.exe 啟用 Z Out Inverse<span class="pf-meta">控制卡設定</span></label></div>
-        <p class="pf-body">方向反轉後，必須在 <b>HWConfig.exe</b> 啟用 <b>Z Out Inverse</b>，校正結果才會準。這一項沒做，後面全部白做。</p>
-        <details><summary>例外情況</summary><p>啟用後若聚焦軸輸出反而反向，依實際狀況取消這個選項（原廠說明：請視情況取消）。</p></details>
+      <div class="pf-main">
+        <h3 class="pf-title">在控制卡 HWConfig 勾選「Z Line Out Inverse」</h3>
+        <p class="pf-meta">控制卡設定</p>
+        <p class="pf-body">方向反轉後，必須在 <b>HWConfig.exe</b> 勾選 <b>Z Line Out Inverse</b>，校正結果才會準。這一項沒做，後面全部白做。</p>
+        <div class="pf-actions"><button class="pf-look" data-key="pf2">看畫面　▸</button><button class="pf-ack" data-key="pf2" aria-pressed="false">我知道了</button></div>
       </div>
-    </div>
-    <div class="pf-item">
+    </article>
+
+    <article class="pf-item" data-key="pf3">
       <div class="pf-num">03</div>
-      <div>
-        <div class="pf-head"><input class="pf-check" type="checkbox" id="pf3"><label class="pf-title" for="pf3">舊校正檔會自動轉換，但設定不會自己勾<span class="pf-meta">從 V3.00～V3.01 升上來</span></label></div>
-        <p class="pf-body">V3.02 會自動轉換舊版做的校正檔，但 <b>Z Out Inverse 仍要手動</b>在 HWConfig.exe 啟用。</p>
-        <details><summary>意思是</summary><p>軟體只幫你轉檔，不會去動控制卡。升級後第一次校正前，先回頭確認這個勾選還在不在。</p></details>
+      <div class="pf-main">
+        <h3 class="pf-title">舊校正檔會自動轉換，但設定不會自己勾</h3>
+        <p class="pf-meta">從 V3.00～V3.01 升上來</p>
+        <p class="pf-body">V3.02 會自動轉換舊版做的校正檔，但 <b>Z Line Out Inverse 仍要手動</b>在 HWConfig 勾。軟體只轉檔，不動控制卡。</p>
+        <div class="pf-actions"><button class="pf-look" data-key="pf3">怎麼確認　▸</button><button class="pf-ack" data-key="pf3" aria-pressed="false">我知道了</button></div>
       </div>
-    </div>
-    <div class="pf-item">
+    </article>
+
+    <article class="pf-item" data-key="pf4">
       <div class="pf-num">04</div>
-      <div>
-        <div class="pf-head"><input class="pf-check" type="checkbox" id="pf4"><label class="pf-title" for="pf4">新增鏡頭時，校正法保持「公式法」<span class="pf-meta">選了就不能改</span></label></div>
-        <p class="pf-body">新增鏡頭校正檔時，「校正法」維持 <b>公式法</b>的預設值，多層校正以公式法為基準。</p>
-        <details><summary>不要跟後面的格點法搞混</summary><p>這裡選了比例法或格點法就不能改，要改只能新增鏡頭從頭校正。第 5 步之後用的格點法／比例法，是「尺寸校正」的另一個欄位，兩件事不一樣。</p></details>
+      <div class="pf-main">
+        <h3 class="pf-title">新增鏡頭時，公式法這一整塊不要去改</h3>
+        <p class="pf-meta">選了就不能改</p>
+        <p class="pf-body">新增鏡頭校正檔時，「校正法」維持 <b>公式法</b>；進到校正視窗後，左邊 <b>原點偏位、放縮比例、旋轉、校正</b>這整塊都不要動。多層校正靠它當基準。</p>
+        <div class="pf-actions"><button class="pf-look" data-key="pf4">看是哪裡　▸</button><button class="pf-ack" data-key="pf4" aria-pressed="false">我知道了</button></div>
       </div>
-    </div>
-    <div class="pf-item">
+    </article>
+
+    <article class="pf-item" data-key="pf5">
       <div class="pf-num">05</div>
-      <div>
-        <div class="pf-head"><input class="pf-check" type="checkbox" id="pf5"><label class="pf-title" for="pf5">先用焦距量測工具量出 Zmax 與 Zmin<span class="pf-meta">變焦範圍夠不夠</span></label></div>
+      <div class="pf-main">
+        <h3 class="pf-title">先用焦距量測工具量出 Zmax 與 Zmin</h3>
+        <p class="pf-meta">變焦範圍夠不夠</p>
         <p class="pf-body">進 3D 校正前，先量這個振鏡最高與最低可以雕的高度，確認變焦範圍涵蓋你要的目標幅面。</p>
-        <details><summary>怎麼量</summary><p>Z 座標移到 32767（PMC6 / EMC6 為 524287）量 Zmax；移到 −32768（PMC6 / EMC6 為 −524288）量 Zmin。量到的雕刻長度要<b>大於目標幅面</b>，不夠就先增加焦距或縮小目標範圍。</p></details>
+        <div class="pf-actions"><button class="pf-look" data-key="pf5">怎麼量　▸</button><button class="pf-ack" data-key="pf5" aria-pressed="false">我知道了</button></div>
       </div>
-    </div>
-    <div class="pf-item">
+    </article>
+
+    <article class="pf-item" data-key="pf6">
       <div class="pf-num">06</div>
-      <div>
-        <div class="pf-head"><input class="pf-check" type="checkbox" id="pf6"><label class="pf-title" for="pf6">決定 Z0 要放最高、中間還是最低<span class="pf-meta">中立位置三分法</span></label></div>
+      <div class="pf-main">
+        <h3 class="pf-title">決定 Z0 要放最高、中間還是最低</h3>
+        <p class="pf-meta">中立位置三分法</p>
         <p class="pf-body">看中立位置落在哪一段：上三分之一 → Z0 當<b>最高層</b>；中間 → Z0 <b>居中</b>，上下都有行程；下三分之一 → Z0 當<b>最低層</b>。</p>
-        <details><summary>對應數值</summary><p>16 位元：32767～10923／10922～−10922／−10923～−32768。20 位元（PMC6 / EMC6）：524287～174763／174762～−174762／−174763～−524288。這一項選錯，後面每一層的高度都會錯。</p></details>
+        <div class="pf-actions"><button class="pf-look" data-key="pf6">看對照　▸</button><button class="pf-ack" data-key="pf6" aria-pressed="false">我知道了</button></div>
       </div>
-    </div>
-    <div class="pf-item">
+    </article>
+
+    <article class="pf-item" data-key="pf7">
       <div class="pf-num">07</div>
-      <div>
-        <div class="pf-head"><input class="pf-check" type="checkbox" id="pf7"><label class="pf-title" for="pf7">幅面先確認夠大，層數先算好<span class="pf-meta">全幅面中心線、9 層上限</span></label></div>
-        <p class="pf-body">全幅面輸出的 X、Y 中心線都要<b>大於目標範圍</b>；不夠就重置校正檔、把 K 值拉大重做。</p>
-        <details><summary>兩個上限</summary><p>格點法的 K 值最大 0.9375。基本三層完成後才能新增實體層，最多再加 6 層，總共 9 層。前聚焦才需要聚焦軸校正，後聚焦直接做尺寸校正。</p></details>
+      <div class="pf-main">
+        <h3 class="pf-title">幅面先確認夠大，層數先算好</h3>
+        <p class="pf-meta">全幅面中心線、9 層上限</p>
+        <p class="pf-body">全幅面輸出的 X、Y 中心線都要<b>大於目標範圍</b>；不夠就重置校正檔、把 K 值拉大重做。基本三層完成後才能新增層，最多加到 9 層。</p>
+        <div class="pf-actions"><button class="pf-look" data-key="pf7">怎麼看　▸</button><button class="pf-ack" data-key="pf7" aria-pressed="false">我知道了</button></div>
       </div>
-    </div>
+    </article>
+
     <p class="pf-foot">以上依 MM3D-Plus V3.02《多層校正使用說明》整理。之後要重看，從右上角「設定」→「校正前確認」再打開。</p>
   </div>
 </section>
+
+<div class="pf-modal" id="pf-modal" hidden>
+  <div class="pf-modal-box" role="dialog" aria-modal="true" aria-labelledby="pf-modal-title">
+    <header class="pf-modal-head"><div><h3 id="pf-modal-title"></h3></div><button class="pf-modal-close" id="pf-modal-close" aria-label="關閉">✕</button></header>
+    <figure><img id="pf-modal-img" alt=""><figcaption id="pf-modal-cap"></figcaption></figure>
+    <ol id="pf-modal-steps"></ol>
+    <footer class="pf-modal-foot"><button class="pf-ack pf-ack-lg" id="pf-modal-ack">我知道了</button></footer>
+  </div>
+</div>
 
 <main class="shell" id="shell"><header class="appbar"><div class="mark">M</div><div class="product">MM3D PLUS 多層校正<small id="active-title">STEP 01 · 焦距高度</small></div><div class="bar-spacer"></div><label class="optics-label" for="optics">光學配置</label><select class="optics" id="optics"><option value="front">前聚焦 Galvo</option><option value="post">後聚焦 F-theta Lens</option></select><div class="settings-wrap"><button class="settings-button" id="settings" aria-expanded="false">設定</button><div class="settings-panel" id="settings-panel"><label>背景音樂音量<input id="music-volume" type="range" min="0" max="1" step=".01" value=".22"></label><button id="music-mute">背景音樂開啟</button><label>旁白音量<input id="voice-volume" type="range" min="0" max="1" step=".01" value="1"></label><button id="voice-mute" aria-pressed="false">旁白開啟</button><button id="principle-layout">切換原理大畫面</button><button id="preflight-open">校正前確認</button></div></div><button class="home" id="home">返回首頁</button></header><nav class="timeline" id="timeline"></nav><section class="stage"><iframe id="lesson" title="MM3D PLUS 多層校正教學" allow="autoplay; fullscreen"></iframe><div class="loading" id="loading">正在切換教學步驟…</div></section></main>
 <script src="assets/preflight.js"></script><script src="assets/shell.js"></script></body></html>
