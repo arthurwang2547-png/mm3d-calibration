@@ -17,12 +17,16 @@ document.querySelectorAll('.route').forEach(b=>b.onclick=()=>{optics=b.dataset.o
 function command(action,extra={}){frame.contentWindow.postMessage({type:'mm3d-command',action,optics,...extra},'*')}
 function loadStep(n,play=false){n=Math.max(1,Math.min(15,+n||1));if(optics==='post'&&n===12)n=13;current=n;updateSteps();loading.classList.add('show');frameReady=false;pendingPlay=play;frame.src=paths[chapter(n)]+'?step='+n+'&optics='+optics;history.replaceState(null,'','#step-'+n)}
 frame.addEventListener('load',()=>{if(frame.src==='about:blank')return;frameReady=true;loading.classList.remove('show');command('internal-music',{volume:0,muted:true});if(pendingNavigation){const n=pendingNavigation;pendingNavigation=null;command('navigate',n);return;}if(pendingPlay){pendingPlay=false;command('start')}});
-$('#start').onclick=()=>{cover.style.display='none';shell.classList.add('active');$('#optics').value=optics;startMusic();loadStep(1,true)};
+function enterShell(){cover.style.display='none';shell.classList.add('active');$('#optics').value=optics;startMusic();loadStep(1,true)}
+function goHome(){shell.classList.remove('active');cover.style.display='grid';command('pause');if(audioContext)audioContext.suspend();$('#settings-panel').classList.remove('open')}
+window.__mm3dHome=goHome;
+$('#start').onclick=()=>{if(window.Preflight)window.Preflight.begin(enterShell);else enterShell()};
+$('#preflight-open').onclick=()=>{if(window.Preflight)window.Preflight.open()};
 document.querySelectorAll('.step').forEach(b=>b.onclick=()=>loadStep(b.dataset.step,false));
 $('#optics').onchange=e=>{optics=e.target.value;updateSteps();command('branch')};
 $('#settings').onclick=()=>{const panel=$('#settings-panel'),open=!panel.classList.contains('open');panel.classList.toggle('open',open);$('#settings').setAttribute('aria-expanded',open)};
 $('#music-volume').oninput=setMusicVolume;$('#music-mute').onclick=()=>{musicMuted=!musicMuted;$('#music-mute').textContent=musicMuted?'背景音樂靜音':'背景音樂開啟';setMusicVolume()};
-$('#home').onclick=()=>{shell.classList.remove('active');cover.style.display='grid';command('pause');if(audioContext)audioContext.suspend();$('#settings-panel').classList.remove('open')};
+$('#home').onclick=goHome;
 window.addEventListener('message',e=>{if(e.source!==frame.contentWindow||!e.data)return;if(e.data.type==='mm3d-step'){current=e.data.step;updateSteps()}if(e.data.type==='mm3d-chapter-complete')loadStep(e.data.nextStep,true);if(e.data.type==='mm3d-course-complete'){current=15;updateSteps()}});
 current=Number((location.hash.match(/step-(\d+)/)||[])[1])||1;updateSteps();loadStep(current,false);
 

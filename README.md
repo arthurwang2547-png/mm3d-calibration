@@ -4,6 +4,20 @@
 
 旁白：Apple 美佳高音質。
 
+## STEP 00 校正前確認（2026-11-25）
+
+按「開始教學」後先跳一張確認清單，7 項全部打勾才放行。內容依原廠
+《MM3D-Plus V3.02 多層校正使用說明》整理，重點是 **Z 軸輸出方向在 V3.02 反轉**
+（Smax 32767 / Smin −32768）與 **HWConfig.exe 要啟用 Z Out Inverse**。
+
+7 項：版本與 Z 方向、Z Out Inverse、舊校正檔轉換、校正法維持公式法、
+Zmax/Zmin 量測、Z0 放哪一層（中立位置三分法）、幅面與層數上限。
+
+- `assets/preflight.css`、`assets/preflight.js`，掛在 `index.html`，不動 14 步時間軸
+- 同一個分頁確認過就不再攔（sessionStorage）；右上角「設定 → 校正前確認」可重開
+- 要單獨把這頁給客戶：`index.html?preflight=1`
+- 詳細說明文字在 `index.html` 的 `#preflight` 區塊，改文案不用碰 JS
+
 ## 手機離線預覽（V1）
 
 `mobile-8-3.html`、`mobile-8-4.html` 是單一檔案的手機版預覽，所有圖片、旁白 mp3、影片都用 data: URI 內嵌，
