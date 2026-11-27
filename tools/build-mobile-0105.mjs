@@ -19,6 +19,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { injectStep00 } from './mobile-step00-inject.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CHAPTER = '01-05';
@@ -143,6 +144,9 @@ function main() {
 
   html = html.replace(/<\/body>/, () =>
     `<style>${shellCss}</style>\n<script>window.V2_CONFIG=${JSON.stringify(config)};</script>\n<script>${lensJs}</script>\n<script>${layerJs}</script>\n</body>`);
+
+  // STEP 00 行前確認（四項檢查），一定要在外殼之後
+  html = injectStep00(html, ROOT, dataURI);
 
   const out = path.join(ROOT, OUT_NAME);
   fs.writeFileSync(out, html, 'utf8');

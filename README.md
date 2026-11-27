@@ -49,12 +49,23 @@ node tools/build-mobile.mjs --chapter 06-10 --visible 8 --segment 4
 |---|---|---|---|
 | `mobile-01-04.html` | STEP 01–04 | 18 | `assets/chapters/01-05/` |
 | `mobile-05.html` | STEP 05 | 4 | `assets/chapters/06-10/` 第 1 步 |
-| `mobile-06-09.html` | STEP 06–09 | 18 | `assets/chapters/06-10/` 第 2–5 步 |
-| `mobile-10-14.html` | STEP 10–14 | 18 | `assets/chapters/11-15/` |
+| `mobile-06-09.html` | STEP 06–09 | 19 | `assets/chapters/06-10/` 第 2–5 步 |
+| `mobile-10-14.html` | STEP 10–14 | 19 | `assets/chapters/11-15/` |
 
 > 三個章節的播放引擎互不相同（01-05 是截圖＋3D 模型、06-10 是影片對時＋多層模型、
 > 11-15 是 loadCue＋內建局部放大框）。硬合併會破壞既有的動畫與語音同步，所以一頁一章節群組，
 > 各自沿用自己那一章的播放引擎，只用「下一頁／上一頁」互相銜接。
+
+### STEP 00 行前確認（2026-11-27）
+
+跟網頁版同一套四項檢查，改成手機直向版面：4 張卡、每張可開圖解（圖也是內嵌 data: URI）。
+
+- 只在**課程第一頁**（`mobile-01-04.html`，`V2_CONFIG` 沒有 `prevPage` 的那一頁）開頁時攔；
+  4 項都按過「我知道了」才能開始。從 STEP 05 按「上一頁」回來（`#last`）不再攔。
+- 其他三頁不攔，但右上角 ⚙ →「行前確認（STEP 00）」可以重看（那時可以關掉，不必全部按完）。
+- 確認紀錄存在 `sessionStorage`（`mm3d-preflight-ack`）；`file://` 開檔時瀏覽器不給儲存，就每次開頁都會攔。
+- 要改文案：`tools/mobile-step00.js` 最上面的 `CARDS`（卡片）與 `DATA`（圖解步驟）；
+  圖在 `assets/preflight/`，路徑對應寫在 `tools/mobile-step00-inject.mjs`。
 
 ### 重新產生
 
@@ -72,6 +83,17 @@ node tools/build-mobile-1115.mjs    # → mobile-10-14.html
 - `tools/mobile-v2-1115.js` — STEP 10–14 呈現層
 - `tools/mobile-v2-videolens.js` — 影片片段的局部放大框（第二個 `<video>` 做位移縮放裁切）
 - `tools/mobile-assets/` — 給手機版用的 960×540 影片（同一段畫面重新編碼縮小，原始檔保留不動）
+- `tools/mobile-step00.css` / `tools/mobile-step00.js` — STEP 00 行前確認
+- `tools/mobile-step00-inject.mjs` — 三支 build 共用的注入點（一定要在外殼之後）
+
+### 手機版還沒做的（跟網頁版比的差別）
+
+內容（14 步、60 小段、旁白、影片、3D）與網頁版一致；差的是外殼功能：
+
+- **光學配置（前聚焦 Galvo／後聚焦 F-theta Lens）**：網頁版切到後聚焦會跳過 STEP 12、11 步改播
+  `11-post`；手機版固定走前聚焦那條。
+- 時間軸（直接跳到第 N 步）、返回首頁、背景音樂（手機版預設 0，⚙ 可調）。
+- 「切換原理大畫面」在手機版由點面板放大（⤢）取代。
 
 ### 注意
 
