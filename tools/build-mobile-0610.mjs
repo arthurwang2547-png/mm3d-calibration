@@ -17,6 +17,8 @@ import { injectStep00 } from './mobile-step00-inject.mjs';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CHAPTER = '06-10';
 const CHAPTER_DIR = path.join(ROOT, 'assets', 'chapters', CHAPTER);
+// MM3D_PLAYER=1 → 產出給 m.html 外殼用的章節播放器（STEP 05–09 併成一頁）
+const PLAYER = process.env.MM3D_PLAYER === '1';
 const TRANSPARENT_PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
 
 const MIME = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.mp3': 'audio/mpeg', '.mp4': 'video/mp4', '.css': 'text/css' };
@@ -27,7 +29,15 @@ const dataURI = (file) => {
   return `data:${mime};base64,${fs.readFileSync(file).toString('base64')}`;
 };
 
-const PAGES = [
+const PAGES = PLAYER ? [
+  {
+    out: 'player-0610.html', first: 0, last: 4,
+    nextPage: '', prevPage: '',
+    title: 'STEP 05–09 手機版',
+    note: '完整版顯示的 STEP 05–09（06-10 章）。',
+    intro: '完整版顯示的 STEP 05–09：進入 3D 多層校正、Z0 的意義、切換工作層、中間層落焦、補上實體高度層。',
+  },
+] : [
   {
     out: 'mobile-05.html', first: 0, last: 0,
     nextPage: 'mobile-06-09.html', prevPage: 'mobile-01-04.html#last',
@@ -139,13 +149,14 @@ function build(CUES, page) {
     firstStep: page.first, lastStep: page.last,
     nextPage: page.nextPage, prevPage: page.prevPage,
     title: page.title, note: page.note, intro: page.intro,
+    player: PLAYER,
   };
 
   html = html.replace(/<\/body>/, () =>
     `<style>${shellCss}</style>\n<script>window.V2_CONFIG=${JSON.stringify(config)};</script>\n<script>${lensJs}</script>\n<script>${layerJs}</script>\n</body>`);
 
-  // STEP 00 行前確認（四項檢查），一定要在外殼之後
-  html = injectStep00(html, ROOT, dataURI);
+  // STEP 00 行前確認（四項檢查），一定要在外殼之後；播放器模式由 m.html 負責
+  if (!PLAYER) html = injectStep00(html, ROOT, dataURI);
 
   const out = path.join(ROOT, page.out);
   fs.writeFileSync(out, html, 'utf8');

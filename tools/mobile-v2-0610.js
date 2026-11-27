@@ -351,6 +351,29 @@
   document.body.append(startCover);
   startCover.querySelector('button').onclick = () => { startCover.remove(); goFlat(0); };
 
+  // ── 外殼模式（m.html 用）：不顯示封面，播完最後一段通知外殼 ─────────
+  if (CFG.player) {
+    startCover.remove();
+    const _syncNav = syncNavLabels;
+    syncNavLabels = function () {
+      _syncNav();
+      nextBtn.disabled = false;
+      if (flatIndex() >= FLAT.length - 1) nextBtn.textContent = '看完了 →';
+    };
+    const _next = nextBtn.onclick;
+    nextBtn.onclick = () => {
+      if (flatIndex() >= FLAT.length - 1) { parent.postMessage({ type: 'mm3d-done' }, '*'); return; }
+      _next();
+    };
+    window.__mm3dStart = () => { goFlat(0); };
+
+    // 外殼用 postMessage 起播（file:// 之下兩個 file 頁面是跨來源，不能直接呼叫 contentWindow）
+    addEventListener('message', (e) => {
+      if (e.data && e.data.type === 'mm3d-start' && typeof window.__mm3dStart === 'function') window.__mm3dStart();
+    });
+    syncNavLabels();
+  }
+
   step = FIRST; cue = 0;
   page();
   renderCue();

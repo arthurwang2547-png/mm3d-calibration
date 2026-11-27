@@ -265,6 +265,28 @@
     loadCue(FIRST, 0, true).then(() => { syncAll(); });
   };
 
+  // ── 外殼模式（m.html 用）：不顯示封面，播完最後一段通知外殼 ─────────
+  if (CFG.player) {
+    startCover.remove();
+    const _syncNav2 = syncNavLabels;
+    syncNavLabels = function () {
+      _syncNav2();
+      if (isLast()) { nextBtn.disabled = false; nextBtn.textContent = '看完了 →'; }
+    };
+    nextBtn.onclick = () => {
+      if (isLast()) { parent.postMessage({ type: 'mm3d-done' }, '*'); return; }
+      closeZoom();
+      if (typeof origNext === 'function') origNext();
+    };
+    window.__mm3dStart = () => { loadCue(FIRST, 0, true).then(() => { syncAll(); }); };
+
+    // 外殼用 postMessage 起播（file:// 之下兩個 file 頁面是跨來源，不能直接呼叫 contentWindow）
+    addEventListener('message', (e) => {
+      if (e.data && e.data.type === 'mm3d-start' && typeof window.__mm3dStart === 'function') window.__mm3dStart();
+    });
+    syncAll();
+  }
+
   // 章節載入時已經 loadCue(11,0,false)，這裡先不播
   syncAll();
   v2Resize();

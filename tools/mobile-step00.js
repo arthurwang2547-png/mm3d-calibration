@@ -209,10 +209,12 @@
   }
 
   var autoStart = false;
+  var pendingDone = null;
 
   function open(opts) {
     opts = opts || {};
     autoStart = !!opts.autoStart;
+    pendingDone = typeof opts.onDone === 'function' ? opts.onDone : null;
     closeBtn.hidden = autoStart;
     if (!autoStart) { try { if (window.narration && !window.narration.paused) window.narration.pause(); } catch (e) {} }
     root.classList.add('open');
@@ -245,10 +247,13 @@
   go.addEventListener('click', function () {
     if (go.disabled) return;
     close();
-    if (!autoStart) return;
-    // 第一頁：確認完直接進第 1 小段（原本那張封面就不用了）
-    var start = document.querySelector('.v2-start button');
-    if (start) start.click();
+    var done = pendingDone; pendingDone = null;
+    if (autoStart) {
+      // 獨立版四頁：確認完直接進第 1 小段（原本那張封面就不用了）
+      var start = document.querySelector('.v2-start button');
+      if (start) { start.click(); return; }
+    }
+    if (done) done();
   });
 
   // ── 右上角 ⚙ 也能重看 ────────────────────────────────────────────
@@ -264,8 +269,17 @@
 
   sync();
 
+  // 給外殼（m.html）用的 API；獨立版四頁不走這裡
+  window.MobileStep00 = {
+    open: open,
+    close: close,
+    allAcked: allAcked,
+    reset: function () { acked = []; save(acked); sync(); }
+  };
+
   // ── 什麼時候自動攔 ────────────────────────────────────────────────
-  // 只有課程第一頁（沒有 prevPage）才攔；從 STEP 05 按「上一頁」回來（#last）不攔。
+  // 獨立版四頁：只有課程第一頁（沒有 prevPage）才攔；外殼自己呼叫 open()，不自動攔。
+  if (CFG.manual) return;
   var isFirstPage = !CFG.prevPage;
   var cameBack = /last/.test(location.hash || '');
   if (isFirstPage && !cameBack && !allAcked()) open({ autoStart: true });

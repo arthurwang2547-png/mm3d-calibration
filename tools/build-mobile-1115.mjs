@@ -16,7 +16,9 @@ import { injectStep00 } from './mobile-step00-inject.mjs';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CHAPTER = '11-15';
 const CHAPTER_DIR = path.join(ROOT, 'assets', 'chapters', CHAPTER);
-const OUT_NAME = 'mobile-10-14.html';
+// MM3D_PLAYER=1 → 產出給 m.html 外殼用的章節播放器
+const PLAYER = process.env.MM3D_PLAYER === '1';
+const OUT_NAME = PLAYER ? 'player-1115.html' : 'mobile-10-14.html';
 const FIRST = 11, LAST = 15;
 const TRANSPARENT_PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
 
@@ -104,7 +106,8 @@ function main() {
   const layerJs = fs.readFileSync(path.join(ROOT, 'tools', 'mobile-v2-1115.js'), 'utf8');
   const config = {
     firstStep: FIRST, lastStep: LAST,
-    nextPage: '', prevPage: 'mobile-06-09.html',
+    nextPage: '', prevPage: PLAYER ? '' : 'mobile-06-09.html',
+    player: PLAYER,
     title: 'STEP 10–14 手機版',
     note: '完整版顯示的 STEP 10–14（11-15 章）。按「上一頁」在第一段會回到 STEP 06–09。',
     intro: '完整版顯示的 STEP 10–14：新增層的中心焦點、四點同步、回到尺寸校正、格點校正、再新增層。<br>每一小段播完會停住，按「下一段」再繼續。',
@@ -113,8 +116,8 @@ function main() {
   html = html.replace(/<\/body>/, () =>
     `<style>${shellCss}</style>\n<script>window.V2_CONFIG=${JSON.stringify(config)};</script>\n<script>${layerJs}</script>\n</body>`);
 
-  // STEP 00 行前確認（四項檢查），一定要在外殼之後
-  html = injectStep00(html, ROOT, dataURI);
+  // STEP 00 行前確認（四項檢查），一定要在外殼之後；播放器模式由 m.html 負責
+  if (!PLAYER) html = injectStep00(html, ROOT, dataURI);
 
   const out = path.join(ROOT, OUT_NAME);
   fs.writeFileSync(out, html, 'utf8');

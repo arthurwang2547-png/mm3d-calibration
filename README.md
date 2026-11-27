@@ -39,6 +39,47 @@ node tools/build-mobile.mjs --chapter 06-10 --visible 8 --segment 4
 
 `--segment` 就是畫面上的 8-1、8-2…編號。手機版外殼樣式放在 `tools/mobile-shell.css`。
 
+## 手機版單一入口（2026-11-27）
+
+給客戶只給一條網址：**`m.html`**。流程跟電腦版一樣：
+
+```
+大畫面（封面）→ STEP 00 行前確認 4 項 → STEP 01–04 → 中場 → STEP 05–09 → 中場 → STEP 10–14 → 完成
+```
+
+- `m.html` 是入口殼：封面、行前確認、章節中場卡都在這裡（約 0.9 MB，封面主視覺內嵌）。
+- 課程本體拆成三支播放器，由 `m.html` 依次載進**同一個 iframe**，各自沿用自己章節的播放引擎：
+  | 檔案 | 內容 | 大小 |
+  |---|---|---|
+  | `player-0105.html` | STEP 01–04（01-05 章） | 5.9 MB |
+  | `player-0610.html` | STEP 05–09（06-10 章） | 9.7 MB |
+  | `player-1115.html` | STEP 10–14（11-15 章） | 6.3 MB |
+- 播放器沒有封面、沒有行前確認（`V2_CONFIG.player = true`），播到最後一段時「下一段」會變成
+  「看完了 →」，按下去用 `postMessage` 通知外殼，外殼跳中場卡，按「繼續」載下一章。
+- 兩個檔案之間是跨來源（`file://` 更是），所以**只能 postMessage**，不能直接呼叫
+  `iframe.contentWindow.__mm3dStart()`。
+- 換章時若瀏覽器擋自動播音，按一次播放鍵即可（跨文件不會繼承使用者授權）。
+
+### 重新產生
+
+```
+MM3D_PLAYER=1 node tools/build-mobile-0105.mjs   # → player-0105.html
+MM3D_PLAYER=1 node tools/build-mobile-0610.mjs   # → player-0610.html
+MM3D_PLAYER=1 node tools/build-mobile-1115.mjs   # → player-1115.html
+node tools/build-mobile-entry.mjs                # → m.html
+```
+
+封面主視覺需要 `assets/mobile-cover-1080.jpg`（由 `assets/mm3d-plus-cover.png` 縮圖）：
+
+```
+ffmpeg -i assets/mm3d-plus-cover.png -vf scale=1080:-1 -q:v 4 assets/mobile-cover-1080.jpg
+```
+
+### 舊的四頁版（保留，舊連結還會通）
+
+`mobile-01-04.html` / `mobile-05.html` / `mobile-06-09.html` / `mobile-10-14.html`
+是 10/15 那一版用「下一頁」互接的四頁，仍然可用，但新客戶請給 `m.html`。
+
 ## 手機版 V2（完整 14 步）
 
 `mobile-01-04.html`、`mobile-05.html`、`mobile-06-09.html`、`mobile-10-14.html` 沿用 V2

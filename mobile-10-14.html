@@ -710,7 +710,7 @@ body#mobile-v2{
   #mobile-v2 .v2-expanded{top:calc(38px + env(safe-area-inset-top))!important}
 }
 </style>
-<script>window.V2_CONFIG={"firstStep":11,"lastStep":15,"nextPage":"","prevPage":"mobile-06-09.html","title":"STEP 10–14 手機版","note":"完整版顯示的 STEP 10–14（11-15 章）。按「上一頁」在第一段會回到 STEP 06–09。","intro":"完整版顯示的 STEP 10–14：新增層的中心焦點、四點同步、回到尺寸校正、格點校正、再新增層。<br>每一小段播完會停住，按「下一段」再繼續。"};</script>
+<script>window.V2_CONFIG={"firstStep":11,"lastStep":15,"nextPage":"","prevPage":"mobile-06-09.html","player":false,"title":"STEP 10–14 手機版","note":"完整版顯示的 STEP 10–14（11-15 章）。按「上一頁」在第一段會回到 STEP 06–09。","intro":"完整版顯示的 STEP 10–14：新增層的中心焦點、四點同步、回到尺寸校正、格點校正、再新增層。<br>每一小段播完會停住，按「下一段」再繼續。"};</script>
 <script>/*
  * MM3D PLUS 手機版 V2 呈現層 — 11-15 章（完整版顯示的 STEP 10～14）。
  *
@@ -977,6 +977,28 @@ body#mobile-v2{
     startCover.remove();
     loadCue(FIRST, 0, true).then(() => { syncAll(); });
   };
+
+  // ── 外殼模式（m.html 用）：不顯示封面，播完最後一段通知外殼 ─────────
+  if (CFG.player) {
+    startCover.remove();
+    const _syncNav2 = syncNavLabels;
+    syncNavLabels = function () {
+      _syncNav2();
+      if (isLast()) { nextBtn.disabled = false; nextBtn.textContent = '看完了 →'; }
+    };
+    nextBtn.onclick = () => {
+      if (isLast()) { parent.postMessage({ type: 'mm3d-done' }, '*'); return; }
+      closeZoom();
+      if (typeof origNext === 'function') origNext();
+    };
+    window.__mm3dStart = () => { loadCue(FIRST, 0, true).then(() => { syncAll(); }); };
+
+    // 外殼用 postMessage 起播（file:// 之下兩個 file 頁面是跨來源，不能直接呼叫 contentWindow）
+    addEventListener('message', (e) => {
+      if (e.data && e.data.type === 'mm3d-start' && typeof window.__mm3dStart === 'function') window.__mm3dStart();
+    });
+    syncAll();
+  }
 
   // 章節載入時已經 loadCue(11,0,false)，這裡先不播
   syncAll();
@@ -1337,10 +1359,12 @@ body#mobile-v2{
   }
 
   var autoStart = false;
+  var pendingDone = null;
 
   function open(opts) {
     opts = opts || {};
     autoStart = !!opts.autoStart;
+    pendingDone = typeof opts.onDone === 'function' ? opts.onDone : null;
     closeBtn.hidden = autoStart;
     if (!autoStart) { try { if (window.narration && !window.narration.paused) window.narration.pause(); } catch (e) {} }
     root.classList.add('open');
@@ -1373,10 +1397,13 @@ body#mobile-v2{
   go.addEventListener('click', function () {
     if (go.disabled) return;
     close();
-    if (!autoStart) return;
-    // 第一頁：確認完直接進第 1 小段（原本那張封面就不用了）
-    var start = document.querySelector('.v2-start button');
-    if (start) start.click();
+    var done = pendingDone; pendingDone = null;
+    if (autoStart) {
+      // 獨立版四頁：確認完直接進第 1 小段（原本那張封面就不用了）
+      var start = document.querySelector('.v2-start button');
+      if (start) { start.click(); return; }
+    }
+    if (done) done();
   });
 
   // ── 右上角 ⚙ 也能重看 ────────────────────────────────────────────
@@ -1392,8 +1419,17 @@ body#mobile-v2{
 
   sync();
 
+  // 給外殼（m.html）用的 API；獨立版四頁不走這裡
+  window.MobileStep00 = {
+    open: open,
+    close: close,
+    allAcked: allAcked,
+    reset: function () { acked = []; save(acked); sync(); }
+  };
+
   // ── 什麼時候自動攔 ────────────────────────────────────────────────
-  // 只有課程第一頁（沒有 prevPage）才攔；從 STEP 05 按「上一頁」回來（#last）不攔。
+  // 獨立版四頁：只有課程第一頁（沒有 prevPage）才攔；外殼自己呼叫 open()，不自動攔。
+  if (CFG.manual) return;
   var isFirstPage = !CFG.prevPage;
   var cameBack = /last/.test(location.hash || '');
   if (isFirstPage && !cameBack && !allAcked()) open({ autoStart: true });

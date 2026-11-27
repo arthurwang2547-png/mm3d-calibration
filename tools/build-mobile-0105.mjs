@@ -24,7 +24,9 @@ import { injectStep00 } from './mobile-step00-inject.mjs';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CHAPTER = '01-05';
 const CHAPTER_DIR = path.join(ROOT, 'assets', 'chapters', CHAPTER);
-const OUT_NAME = 'mobile-01-04.html';
+// MM3D_PLAYER=1 → 產出給 m.html 外殼用的章節播放器（沒有封面、沒有行前確認）
+const PLAYER = process.env.MM3D_PLAYER === '1';
+const OUT_NAME = PLAYER ? 'player-0105.html' : 'mobile-01-04.html';
 
 // 手機版 topbar 是隱藏的，這張 logo 不會顯示
 const TRANSPARENT_PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
@@ -137,16 +139,17 @@ function main() {
   const lensJs = fs.readFileSync(path.join(ROOT, 'tools', 'mobile-v2-videolens.js'), 'utf8');
   const layerJs = fs.readFileSync(path.join(ROOT, 'tools', 'mobile-v2-0105.js'), 'utf8');
   const config = {
-    nextPage: 'mobile-05.html',
+    nextPage: '',
     prevPage: '',
+    player: PLAYER,
     note: '完整版顯示的 STEP 01–04（01-05 章）。點畫面放大時會暫停，關閉後從原本時間接續；按「下一段」在最後一段會接到 STEP 05。',
   };
 
   html = html.replace(/<\/body>/, () =>
     `<style>${shellCss}</style>\n<script>window.V2_CONFIG=${JSON.stringify(config)};</script>\n<script>${lensJs}</script>\n<script>${layerJs}</script>\n</body>`);
 
-  // STEP 00 行前確認（四項檢查），一定要在外殼之後
-  html = injectStep00(html, ROOT, dataURI);
+  // STEP 00 行前確認（四項檢查），一定要在外殼之後；播放器模式由 m.html 負責
+  if (!PLAYER) html = injectStep00(html, ROOT, dataURI);
 
   const out = path.join(ROOT, OUT_NAME);
   fs.writeFileSync(out, html, 'utf8');

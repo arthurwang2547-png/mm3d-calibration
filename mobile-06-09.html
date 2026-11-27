@@ -729,7 +729,7 @@ body#mobile-v2{
   #mobile-v2 .v2-expanded{top:calc(38px + env(safe-area-inset-top))!important}
 }
 </style>
-<script>window.V2_CONFIG={"firstStep":1,"lastStep":4,"nextPage":"mobile-10-14.html","prevPage":"mobile-05.html","title":"STEP 06–09 手機版","note":"完整版顯示的 STEP 06–09（06-10 章第 2~5 步）。按「上一頁」回到 STEP 05。","intro":"完整版顯示的 STEP 06–09：Z0 的意義、切換工作層、中間層落焦、補上實體高度層。<br>每一小段播完會停住，按「下一段」再繼續。"};</script>
+<script>window.V2_CONFIG={"firstStep":1,"lastStep":4,"nextPage":"mobile-10-14.html","prevPage":"mobile-05.html","title":"STEP 06–09 手機版","note":"完整版顯示的 STEP 06–09（06-10 章第 2~5 步）。按「上一頁」回到 STEP 05。","intro":"完整版顯示的 STEP 06–09：Z0 的意義、切換工作層、中間層落焦、補上實體高度層。<br>每一小段播完會停住，按「下一段」再繼續。","player":false};</script>
 <script>/*
  * MM3D PLUS 手機版 V2 — 影片片段的局部放大框（共用元件）。
  *
@@ -1175,6 +1175,29 @@ window.V2VideoLens = function (host, getBox) {
   document.body.append(startCover);
   startCover.querySelector('button').onclick = () => { startCover.remove(); goFlat(0); };
 
+  // ── 外殼模式（m.html 用）：不顯示封面，播完最後一段通知外殼 ─────────
+  if (CFG.player) {
+    startCover.remove();
+    const _syncNav = syncNavLabels;
+    syncNavLabels = function () {
+      _syncNav();
+      nextBtn.disabled = false;
+      if (flatIndex() >= FLAT.length - 1) nextBtn.textContent = '看完了 →';
+    };
+    const _next = nextBtn.onclick;
+    nextBtn.onclick = () => {
+      if (flatIndex() >= FLAT.length - 1) { parent.postMessage({ type: 'mm3d-done' }, '*'); return; }
+      _next();
+    };
+    window.__mm3dStart = () => { goFlat(0); };
+
+    // 外殼用 postMessage 起播（file:// 之下兩個 file 頁面是跨來源，不能直接呼叫 contentWindow）
+    addEventListener('message', (e) => {
+      if (e.data && e.data.type === 'mm3d-start' && typeof window.__mm3dStart === 'function') window.__mm3dStart();
+    });
+    syncNavLabels();
+  }
+
   step = FIRST; cue = 0;
   page();
   renderCue();
@@ -1520,10 +1543,12 @@ window.V2VideoLens = function (host, getBox) {
   }
 
   var autoStart = false;
+  var pendingDone = null;
 
   function open(opts) {
     opts = opts || {};
     autoStart = !!opts.autoStart;
+    pendingDone = typeof opts.onDone === 'function' ? opts.onDone : null;
     closeBtn.hidden = autoStart;
     if (!autoStart) { try { if (window.narration && !window.narration.paused) window.narration.pause(); } catch (e) {} }
     root.classList.add('open');
@@ -1556,10 +1581,13 @@ window.V2VideoLens = function (host, getBox) {
   go.addEventListener('click', function () {
     if (go.disabled) return;
     close();
-    if (!autoStart) return;
-    // 第一頁：確認完直接進第 1 小段（原本那張封面就不用了）
-    var start = document.querySelector('.v2-start button');
-    if (start) start.click();
+    var done = pendingDone; pendingDone = null;
+    if (autoStart) {
+      // 獨立版四頁：確認完直接進第 1 小段（原本那張封面就不用了）
+      var start = document.querySelector('.v2-start button');
+      if (start) { start.click(); return; }
+    }
+    if (done) done();
   });
 
   // ── 右上角 ⚙ 也能重看 ────────────────────────────────────────────
@@ -1575,8 +1603,17 @@ window.V2VideoLens = function (host, getBox) {
 
   sync();
 
+  // 給外殼（m.html）用的 API；獨立版四頁不走這裡
+  window.MobileStep00 = {
+    open: open,
+    close: close,
+    allAcked: allAcked,
+    reset: function () { acked = []; save(acked); sync(); }
+  };
+
   // ── 什麼時候自動攔 ────────────────────────────────────────────────
-  // 只有課程第一頁（沒有 prevPage）才攔；從 STEP 05 按「上一頁」回來（#last）不攔。
+  // 獨立版四頁：只有課程第一頁（沒有 prevPage）才攔；外殼自己呼叫 open()，不自動攔。
+  if (CFG.manual) return;
   var isFirstPage = !CFG.prevPage;
   var cameBack = /last/.test(location.hash || '');
   if (isFirstPage && !cameBack && !allAcked()) open({ autoStart: true });

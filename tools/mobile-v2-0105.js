@@ -403,6 +403,28 @@
   const startAt = location.hash === '#last' ? FLAT.length - 1 : 0;
   startCover.querySelector('button').onclick = () => { startCover.remove(); goFlat(startAt); };
 
+  // ── 外殼模式（m.html 用）：不顯示封面，播完最後一段通知外殼 ─────────
+  if (CFG.player) {
+    startCover.remove();
+    const _syncNav = syncNavLabels;
+    syncNavLabels = function () {
+      _syncNav();
+      if (flatIndex() >= FLAT.length - 1) { nextBtn.disabled = false; nextBtn.textContent = '看完了 →'; }
+    };
+    const _next = nextBtn.onclick;
+    nextBtn.onclick = () => {
+      if (flatIndex() >= FLAT.length - 1) { parent.postMessage({ type: 'mm3d-done' }, '*'); return; }
+      _next();
+    };
+    window.__mm3dStart = () => { goFlat(0); };
+
+    // 外殼用 postMessage 起播（file:// 之下兩個 file 頁面是跨來源，不能直接呼叫 contentWindow）
+    addEventListener('message', (e) => {
+      if (e.data && e.data.type === 'mm3d-start' && typeof window.__mm3dStart === 'function') window.__mm3dStart();
+    });
+    syncNavLabels();
+  }
+
   // 開場先停在第 1 小段的靜態畫面，不自動播音
   {
     const [s0, j0] = FLAT[startAt];

@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="zh-Hant"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#061427">
+<title>MM3D PLUS 多層校正｜手機版</title>
+<style>
+  :root{--ink:#eaf6ff;--muted:#9db8cb;--teal:#4fded2;--deep:#040f1b}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;background:#040f1b;color:var(--ink);
+    font:15px/1.6 -apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC",sans-serif;
+    -webkit-font-smoothing:antialiased;overscroll-behavior:none}
+  body{height:100dvh;overflow:hidden}
+
+  /* ── 大畫面 ─────────────────────────────────────────────── */
+  #cover{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;justify-content:flex-end;
+    padding:0 22px calc(20px + env(safe-area-inset-bottom));
+    background:radial-gradient(120% 80% at 82% -14%,#134d6b 0%,#0a2b45 34%,#061427 62%,#040f1b 100%);
+    overflow:hidden}
+  #cover .art{position:absolute;left:0;right:0;top:0;height:56%;pointer-events:none;
+    background:url(/*__COVER_URL__*/) center 38%/cover no-repeat;
+    -webkit-mask-image:linear-gradient(#000 62%,transparent 100%);
+    mask-image:linear-gradient(#000 62%,transparent 100%);opacity:.92}
+  #cover .art::after{content:"";position:absolute;inset:0;
+    background:linear-gradient(180deg,#04101bcc 0%,#05142366 38%,#06142700 72%)}
+  #cover::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(115deg,#ffffff05 0 1px,transparent 1px 46px)}
+  #cover .top{position:absolute;left:22px;right:22px;top:calc(22px + env(safe-area-inset-top));
+    display:flex;align-items:center;gap:9px;z-index:3}
+  #cover .mark{width:26px;height:26px;border-radius:7px;background:#0e3a54;color:#7ff0e2;
+    display:grid;place-items:center;font-weight:800;font-size:14px;letter-spacing:0}
+  #cover .brand{font-size:11px;letter-spacing:.24em;color:#a8c8da;font-weight:700}
+  #cover .hero{position:relative;z-index:2}
+  #cover .eyebrow{font-size:10.5px;letter-spacing:.26em;color:#6fe8dd;font-weight:800;margin-bottom:12px}
+  #cover h1{margin:0;font-size:clamp(29px,8.4vw,38px);line-height:1.3;letter-spacing:-.02em;font-weight:800;
+    text-shadow:0 2px 24px #04101bb3}
+  #cover h1 span{display:block;font-size:.32em;letter-spacing:.3em;color:#a8c8da;font-weight:700;
+    margin-bottom:10px;text-shadow:none}
+  #cover .lead{margin:14px 0 0;font-size:13px;line-height:1.85;color:#a9c6d8;max-width:23em}
+  #cover .nums{display:flex;gap:8px;margin:16px 0 0;flex-wrap:wrap}
+  #cover .nums i{font-style:normal;font-size:11px;font-weight:700;letter-spacing:.04em;color:#9fd8d2;
+    border:1px solid #1e4d63;background:#0a2437cc;border-radius:999px;padding:6px 11px}
+  #cover .cta{margin-top:22px;position:relative;z-index:2}
+  #cover button{width:100%;height:54px;border:0;border-radius:14px;font-size:16.5px;font-weight:800;
+    color:#04202f;background:linear-gradient(135deg,#6ff0e0,#2f9dc0);
+    box-shadow:0 16px 40px #12b0a83d;letter-spacing:.02em}
+  #cover button:active{transform:translateY(1px)}
+  #cover .fine{margin:11px 0 0;text-align:center;font-size:11px;color:#7e9cb0}
+
+  /* ── 課程 ───────────────────────────────────────────────── */
+  #stage{position:fixed;inset:0;z-index:5;background:#eaf0f4;display:none}
+  #stage.on{display:block}
+  #lesson{width:100%;height:100%;border:0;display:block;background:#eaf0f4}
+
+  /* 章節中場 */
+  #card{position:fixed;inset:0;z-index:20;display:none;place-items:center;text-align:center;
+    padding:28px;background:#040f1bf2;backdrop-filter:blur(6px)}
+  #card.on{display:grid}
+  #card .in{max-width:320px}
+  #card .kicker{font-size:10.5px;letter-spacing:.24em;color:#6fe8dd;font-weight:800;margin-bottom:12px}
+  #card h2{margin:0;font-size:26px;line-height:1.3;color:#f2fbff;letter-spacing:-.01em}
+  #card p{margin:12px 0 0;font-size:13px;line-height:1.8;color:#a9c2d3}
+  #card button{margin-top:22px;width:100%;height:50px;border:0;border-radius:13px;font-size:15.5px;font-weight:800;
+    color:#04202f;background:linear-gradient(135deg,#6ff0e0,#2f9dc0);box-shadow:0 14px 34px #12b0a836}
+  #card .ghost{margin-top:10px;background:none;border:1px solid #2b5b73;color:#a8c6d7;box-shadow:none}
+  #card .fine{margin:14px 0 0;font-size:11px;color:#7e9cb0}
+</style>
+<style>/*__PF_CSS__*/</style>
+</head>
+<body id="mobile-v2">
+
+<section id="cover">
+  <div class="art" aria-hidden="true"></div>
+  <div class="top"><div class="mark">M</div><div class="brand">MM3D PLUS · MOBILE GUIDE</div></div>
+  <div class="hero">
+    <div class="eyebrow">INTERACTIVE GUIDE</div>
+    <h1><span>鏡頭校正教學</span>多層校正<br>14 個步驟</h1>
+    <p class="lead">實際操作畫面、局部放大與 3D 光路同步播放，旁白逐句講解。開頭四項確認做完，再一次走完 14 步。</p>
+    <div class="nums"><i>STEP 01–04</i><i>STEP 05–09</i><i>STEP 10–14</i></div>
+  </div>
+  <div class="cta">
+    <button id="start">開始教學　▶</button>
+    <p class="fine">建議用 Chrome／Safari 開啟・可離線播放</p>
+  </div>
+</section>
+
+<section id="stage"><iframe id="lesson" title="MM3D PLUS 多層校正教學" allow="autoplay"></iframe></section>
+
+<div id="card">
+  <div class="in">
+    <div class="kicker" id="card-kicker">STEP 05–09</div>
+    <h2 id="card-title"></h2>
+    <p id="card-text"></p>
+    <button id="card-go">繼續　▶</button>
+    <p class="fine" id="card-fine"></p>
+  </div>
+</div>
+
+<script>window.V2_PF_ASSETS=/*__PF_ASSETS__*/;</script>
+<script>window.V2_CONFIG={manual:true};</script>
+<script>/*__PF_JS__*/</script>
+<script>
+/* 手機版入口：大畫面 → 四項行前確認 → 三個章節播放器接力演出 */
+(function () {
+  var CH = [
+    { file: 'player-0105.html', kicker: 'STEP 01–04', title: '確認焦距與中立位置', text: '鏡頭校正的第一步：量測焦距高度、校正最外圈、確認中心線，最後把 Z0 尺寸校準。', fine: '共 18 小段' },
+    { file: 'player-0610.html', kicker: 'STEP 05–09', title: '進入 3D 多層校正', text: '進 3D 校正頁、看懂 Z0 與正負號、切換工作層、調整該層焦點，再新增實體高度層。', fine: '共 22 小段' },
+    { file: 'player-1115.html', kicker: 'STEP 10–14', title: '新增層校正到完成', text: '新增層的中心焦點、四角落焦、回尺寸校正、格點校正，最後確認層數完成。', fine: '共 19 小段' }
+  ];
+  var idx = -1;
+  var stage = document.getElementById('stage'), frame = document.getElementById('lesson');
+  var cover = document.getElementById('cover'), card = document.getElementById('card');
+
+  function showCard(i, done) {
+    var c = CH[i] || {};
+    document.getElementById('card-kicker').textContent = done ? '全部完成' : c.kicker;
+    document.getElementById('card-title').textContent = done ? '14 步都走完了' : c.title;
+    document.getElementById('card-text').textContent = done
+      ? '多層校正的流程到這裡結束。要再看一次，可以從頭重播。'
+      : c.text;
+    document.getElementById('card-go').textContent = done ? '從頭再看一次' : '繼續　▶';
+    document.getElementById('card-fine').textContent = done ? '' : (c.fine || '');
+    card.classList.add('on');
+  }
+
+  function load(i) {
+    idx = i;
+    card.classList.remove('on');
+    stage.classList.add('on');
+    frame.src = CH[i].file;
+    frame.onload = function () {
+      // file:// 之下兩個頁面算跨來源，只能 postMessage（不能直接呼叫 contentWindow）
+      try { frame.contentWindow.postMessage({ type: 'mm3d-start' }, '*'); } catch (e) {}
+    };
+  }
+
+  // 章節播完（播放器發訊息回來）
+  window.addEventListener('message', function (e) {
+    if (e.source !== frame.contentWindow || !e.data) return;
+    if (e.data.type !== 'mm3d-done') return;
+    var next = idx + 1;
+    showCard(next, next >= CH.length);
+  });
+
+  document.getElementById('card-go').onclick = function () {
+    if (idx + 1 >= CH.length) { location.reload(); return; }
+    load(idx + 1);
+  };
+
+  // 開始教學 → 行前四項 → 進第一章
+  document.getElementById('start').onclick = function () {
+    function go() { cover.style.display = 'none'; load(0); }
+    if (window.MobileStep00 && !window.MobileStep00.allAcked()) {
+      window.MobileStep00.open({ autoStart: true, onDone: go });
+    } else {
+      go();
+    }
+  };
+})();
+</script>
+</body></html>
