@@ -59,12 +59,12 @@
 #mobile-v2 .pf-hint.ready{color:#8fe9cd}
 
 /* 圖解 */
-#mobile-v2 .pf-modal{position:fixed;inset:0;z-index:95;display:none;flex-direction:column;
+#mobile-v2 .pf-modal{position:fixed;inset:0;z-index:95;display:none;flex-direction:column;justify-content:center;
   padding:calc(8px + env(safe-area-inset-top)) 10px calc(8px + env(safe-area-inset-bottom));
   background:#020a12f0;backdrop-filter:blur(5px)}
 #mobile-v2 .pf-modal.open{display:flex}
 #mobile-v2 .pf-modal[hidden]{display:none!important}
-#mobile-v2 .pf-sheet{flex:1;min-height:0;display:flex;flex-direction:column;
+#mobile-v2 .pf-sheet{flex:0 1 auto;max-height:100%;min-height:0;display:flex;flex-direction:column;
   background:#0c1e2f;border:1px solid #28536d;border-radius:14px;overflow:hidden;box-shadow:0 20px 60px #000a}
 #mobile-v2 .pf-sheet header{flex:none;display:flex;align-items:flex-start;gap:8px;padding:12px 12px 4px}
 #mobile-v2 .pf-sheet h3{margin:0;flex:1;font-size:14.5px;line-height:1.45;color:#f6fcff}
