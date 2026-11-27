@@ -49,8 +49,13 @@ node tools/build-mobile.mjs --chapter 06-10 --visible 8 --segment 4
 |---|---|---|---|
 | `mobile-01-04.html` | STEP 01–04 | 18 | `assets/chapters/01-05/` |
 | `mobile-05.html` | STEP 05 | 4 | `assets/chapters/06-10/` 第 1 步 |
-| `mobile-06-09.html` | STEP 06–09 | 19 | `assets/chapters/06-10/` 第 2–5 步 |
+| `mobile-06-09.html` | STEP 06–09 | 18 | `assets/chapters/06-10/` 第 2–5 步 |
 | `mobile-10-14.html` | STEP 10–14 | 19 | `assets/chapters/11-15/` |
+
+四頁合計 59 小段，跟電腦版逐段相同。
+
+> 06-10 章 `cues.js` 原始是 23 段，但章節自己的覆寫腳本會 `CUES[3].splice(5,1)`
+> （註解：Removed former 8-6），實際會播的是 22 段。電腦版與手機版都套到同一行，兩邊一致。
 
 > 三個章節的播放引擎互不相同（01-05 是截圖＋3D 模型、06-10 是影片對時＋多層模型、
 > 11-15 是 loadCue＋內建局部放大框）。硬合併會破壞既有的動畫與語音同步，所以一頁一章節群組，
@@ -66,6 +71,17 @@ node tools/build-mobile.mjs --chapter 06-10 --visible 8 --segment 4
 - 確認紀錄存在 `sessionStorage`（`mm3d-preflight-ack`）；`file://` 開檔時瀏覽器不給儲存，就每次開頁都會攔。
 - 要改文案：`tools/mobile-step00.js` 最上面的 `CARDS`（卡片）與 `DATA`（圖解步驟）；
   圖在 `assets/preflight/`，路徑對應寫在 `tools/mobile-step00-inject.mjs`。
+
+### 內容比對（2026-11-27）
+
+把三個章節頁（電腦版實際載入的檔案）與四頁手機版各自跑完腳本後，取 `CUES` 逐段 `text`
+串起來比 SHA-256，兩邊完全相同：
+
+| 章節 | 段數 | 電腦版／手機版 |
+|---|---|---|
+| 01-05 | 18（1+2+6+6+3） | 一致 |
+| 06-10 | 22（4+4+3+6+5） | 一致 |
+| 11-15 | 19 | 一致 |
 
 ### 重新產生
 
